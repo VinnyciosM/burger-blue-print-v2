@@ -49,20 +49,16 @@ const removeIngredient = (index) => {
                 <div class="ingredients-list">
                     <VueDraggable v-model="ingredients" ghost-class="ghost-item" :animation="200">
                         <div v-for="(item, index) in ingredients" :key="item.id" class="ingredient-item">
-                            <!-- Você pode manter essa div apenas como enfeite visual, se quiser -->
-                            <div class="drag-handle">⋮⋮</div>
-
-                            <div class="ingredient-icon">🍔</div>
-                            <div class="ingredient-info">
-                                <span class="ingredient-name">{{ item.name }}</span>
-                                <span v-if="item.obs" class="ingredient-obs">{{ item.obs }}</span>
+        
+                            <div class="info-area">
+                                <span class="index">#</span>
+                                <span class="name">{{ item.name }}</span>
                             </div>
 
-                            <!-- CUIDADO: Adicione stop propagation no botão de deletar -->
+                            <img src="" alt="" class="ingredient-img" />
+
                             <button @click.stop="removeIngredient(index)" class="icon-btn delete-btn"
-                                aria-label="Remover">
-                                🗑️
-                            </button>
+                                aria-label="Remover">✕</button>
                         </div>
                     </VueDraggable>
                 </div>
@@ -426,38 +422,89 @@ const removeIngredient = (index) => {
 
 /* Número do Item Fixado à Esquerda */
 .item-number {
-  position: absolute;
-  top: 35px; /* Mesma altura do título para ficarem alinhados */
-  left: 5%; /* Fixado no lado esquerdo (acompanhando o início da divisória) */
-  font-size: 1.1rem;
-  font-weight: 900;
-  color: #1a1a24;
+    position: absolute;
+    top: 35px;
+    /* Mesma altura do título para ficarem alinhados */
+    left: 5%;
+    /* Fixado no lado esquerdo (acompanhando o início da divisória) */
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #1a1a24;
 }
 
 /* Título Fixado */
 .canvas-title {
-  position: absolute;
-  top: 35px;
-  width: 100%;
-  text-align: center;
-  color: #1a1a24;
-  font-size: 1.1rem;
-  font-weight: 900;
-  margin: 0;
-  text-transform: uppercase;
+    position: absolute;
+    top: 35px;
+    width: 100%;
+    text-align: center;
+    color: #1a1a24;
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
 }
 
 /* Divisória Laranja Fixada com Tamanho Fixo */
 .canvas-divider {
-  position: absolute;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 95%; /* 95% deixa 2.5% de espaço de cada lado. O 'left: 5%' do item-number o alinha com o começo da linha */
-  height: 2px;
-  background-color: #f38b41;
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    /* 95% deixa 2.5% de espaço de cada lado. O 'left: 5%' do item-number o alinha com o começo da linha */
+    height: 2px;
+    background-color: #f38b41;
 }
 
-/* Obs: apague a classe .edit-badge do seu arquivo */
+.info-area { flex: 1; display: flex; align-items: center; gap: 8px; }
+.index { font-size: 9px; font-weight: 800; color: #fb923c; min-width: 18px; }
+.name { font-size: 10px; font-weight: 800; color: #374151; text-transform: uppercase; }
+
+.ingredient-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 10px;
+  mix-blend-mode: multiply;
+}
+
+.btn-delete-full {
+  width: 45px;
+  height: 100%;
+  border: none;
+  background: #f9fafb;
+  border-left: 1px solid #f3f4f6;
+  color: #d1d5db;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-delete-full:hover { background: #fee2e2; color: #ef4444; }
+
+.empty-state { text-align: center; color: #d1d5db; font-size: 11px; margin-top: 40px; padding: 0 20px; line-height: 1.5; }
+
+.ingredient-item {
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 12px; 
+  height: 48px;
+  transition: all 0.2s;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.ingredient-item:hover { border-color: #fb923c; }
+.is-dragging { opacity: 0.3; border-style: dashed; }
+.is-dragover { border-top: 2px solid #fb923c; margin-top: 10px; }
+
 
 </style>
