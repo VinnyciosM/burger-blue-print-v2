@@ -49,7 +49,7 @@ const removeIngredient = (index) => {
                 <div class="ingredients-list">
                     <VueDraggable v-model="ingredients" ghost-class="ghost-item" :animation="200">
                         <div v-for="(item, index) in ingredients" :key="item.id" class="ingredient-item">
-        
+
                             <div class="info-area">
                                 <span class="index">#</span>
                                 <span class="name">{{ item.name }}</span>
@@ -57,7 +57,7 @@ const removeIngredient = (index) => {
 
                             <img src="" alt="" class="ingredient-img" />
 
-                            <button @click.stop="removeIngredient(index)" class="icon-btn delete-btn"
+                            <button @click.stop="removeIngredient(index)" class="btn-delete-full"
                                 aria-label="Remover">✕</button>
                         </div>
                     </VueDraggable>
@@ -457,54 +457,65 @@ const removeIngredient = (index) => {
     background-color: #f38b41;
 }
 
-.info-area { flex: 1; display: flex; align-items: center; gap: 8px; }
-.index { font-size: 9px; font-weight: 800; color: #fb923c; min-width: 18px; }
-.name { font-size: 10px; font-weight: 800; color: #374151; text-transform: uppercase; }
+
+
+
+
+
+
+.info-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.index {
+    font-size: 9px;
+    font-weight: 800;
+    color: #fb923c;
+    min-width: 18px;
+}
+
+.name {
+    font-size: 10px;
+    font-weight: 800;
+    color: #374151;
+    text-transform: uppercase;
+}
 
 .ingredient-img {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  margin-right: 10px;
-  mix-blend-mode: multiply;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin-right: 10px;
+    mix-blend-mode: multiply;
 }
 
 .btn-delete-full {
-  width: 45px;
-  height: 100%;
-  border: none;
-  background: #f9fafb;
-  border-left: 1px solid #f3f4f6;
-  color: #d1d5db;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+    width: 45px;
+    height: 100%;
+    border: none;
+    color: #d1d5db;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
-.btn-delete-full:hover { background: #fee2e2; color: #ef4444; }
-
-.empty-state { text-align: center; color: #d1d5db; font-size: 11px; margin-top: 40px; padding: 0 20px; line-height: 1.5; }
+.btn-delete-full:hover {
+    background: #fee2e2;
+    color: #ef4444;
+}
 
 .ingredient-item {
-  background: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 8px;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  padding: 0 0 0 12px; 
-  height: 48px;
-  transition: all 0.2s;
-  cursor: grab;
-  overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    height: 48px;
 }
-
-.ingredient-item:hover { border-color: #fb923c; }
-.is-dragging { opacity: 0.3; border-style: dashed; }
-.is-dragover { border-top: 2px solid #fb923c; margin-top: 10px; }
-
-
 </style>
