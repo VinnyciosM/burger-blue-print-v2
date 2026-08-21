@@ -9,7 +9,7 @@
           <p class="section-subtitle">Selecione o lanche para editar</p>
         </header>
 
-        <!-- Lista de Páginas (Sem Draggable) -->
+        <!-- Lista de Páginas -->
         <div class="pages-list">
           <div 
             v-for="(page, index) in pages" 
@@ -24,7 +24,6 @@
                 <span class="name">{{ page.name }}</span>
               </div>
               
-              <!-- Botão de Excluir -->
               <button @click.stop="deletePage(index)" class="btn-delete-full" title="Excluir Lanche">
                 ✕
               </button>
@@ -38,10 +37,8 @@
       </section>
     </div>
 
-    <!-- DIV 2: RESUMO E MODO DE IMPRESSÃO (Fixados no rodapé) -->
+    <!-- DIV 2: RESUMO E MODO DE IMPRESSÃO -->
     <div class="bottom-content">
-      
-      <!-- Card de Resumo do Guia -->
       <div class="summary-card">
         <div class="summary-row">
           <span class="summary-label">Total de Lanches</span>
@@ -70,13 +67,10 @@
 <script setup>
 import { ref } from 'vue'
 
-// --- EVENTOS (EMITS) ---
-const emit = defineEmits(['open-print-mode'])
+const emit = defineEmits(['open-print-mode']) //[cite: 5]
 
-// --- ESTADO DAS PÁGINAS ---
 const activePageId = ref(1)
 
-// O "number" (01, 02) não é mais estritamente necessário no array já que estamos usando {{ index + 1 }} no template, mas mantive a estrutura.
 const pages = ref([
   { id: 1, number: '01', name: 'Alasca Burguer' },
   { id: 2, number: '02', name: 'Cheddar Bacon' },
@@ -86,7 +80,6 @@ const pages = ref([
   { id: 6, number: '06', name: 'Veggie Burguer' }
 ])
 
-// --- FUNÇÕES ---
 const setActivePage = (id) => {
   activePageId.value = id
 }
@@ -96,7 +89,7 @@ const deletePage = (index) => {
 }
 
 const openPrintMode = () => {
-  emit('open-print-mode')
+  emit('open-print-mode') //[cite: 5]
 }
 </script>
 
@@ -106,7 +99,6 @@ button {
   background-color: transparent;
 }
 
-/* Container Principal */
 .guide-settings-sidebar {
   display: flex;
   flex-direction: column;
@@ -122,7 +114,6 @@ button {
   border-left: 1px solid #222;
 }
 
-/* Divisões principais */
 .top-content {
   display: flex;
   flex-direction: column;
@@ -137,7 +128,6 @@ button {
   flex-shrink: 0;
 }
 
-/* Seções Gerais */
 .sidebar-section {
   display: flex;
   flex-direction: column;
@@ -165,7 +155,6 @@ button {
   margin: 0;
 }
 
-/* --- LISTA DE PÁGINAS (Estilo Card) --- */
 .pages-list {
   display: flex;
   flex-direction: column;
@@ -177,7 +166,6 @@ button {
 .pages-list::-webkit-scrollbar { width: 6px; }
 .pages-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-/* Item da Lista (Container) */
 .page-item {
   border-radius: 8px;
   display: flex;
@@ -193,7 +181,6 @@ button {
   border-color: #444;
 }
 
-/* Estado Ativo (Lanche selecionado) */
 .page-item.active-page {
   border-color: #f38b41;
 }
@@ -202,7 +189,6 @@ button {
   color: #f38b41;
 }
 
-/* Linha Principal do Item */
 .page-main-row {
   display: flex;
   align-items: center;
@@ -212,7 +198,6 @@ button {
   box-sizing: border-box;
 }
 
-/* Info do Lanche (# e Nome) */
 .info-area {
   flex: 1;
   display: flex;
@@ -235,27 +220,6 @@ button {
   transition: color 0.2s;
 }
 
-/* Botão de Editar */
-.btn-edit {
-  margin-right: 6px;
-  color: #888;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-edit:hover {
-  color: #fff;
-  background-color: #333;
-}
-
-/* Botão de Excluir Item */
 .btn-delete-full {
   width: 45px;
   height: 100%;
@@ -276,7 +240,6 @@ button {
   background-color: #111;
 }
 
-/* Botão Adicionar Lanche */
 .add-snack-btn {
   background-color: transparent;
   border: 1px dashed #444;
@@ -296,7 +259,6 @@ button {
   color: #ccc;
 }
 
-/* --- CARD DE RESUMO --- */
 .summary-card {
   background-color: #1a1a1a;
   border: 1px solid #2a2a2a;
@@ -325,7 +287,6 @@ button {
   font-weight: 800;
 }
 
-/* --- MODO DE IMPRESSÃO --- */
 .print-section {
   padding-top: 20px;
   border-top: 1px solid #222;
