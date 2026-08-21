@@ -1,20 +1,16 @@
 <template>
   <aside class="guide-settings-sidebar">
     
-    <!-- SEÇÃO 1: PÁGINAS DO GUIA -->
-    <section class="sidebar-section pages-section">
-      <header class="section-header">
-        <h3 class="section-title">📄 PÁGINAS DO GUIA</h3>
-        <p class="section-subtitle">Organize a ordem dos lanches</p>
-      </header>
+    <!-- DIV 1: GERENCIAMENTO DE PÁGINAS -->
+    <div class="top-content">
+      <section class="sidebar-section pages-section">
+        <header class="section-header">
+          <h3 class="section-title">📄 PÁGINAS DO GUIA</h3>
+          <p class="section-subtitle">Selecione o lanche para editar</p>
+        </header>
 
-      <div class="pages-list">
-        <!-- Usando VueDraggablePlus para reordenar a lista -->
-        <VueDraggable 
-          v-model="pages" 
-          ghost-class="ghost-page"
-          :animation="200"
-        >
+        <!-- Lista de Páginas (Sem Draggable) -->
+        <div class="pages-list">
           <div 
             v-for="(page, index) in pages" 
             :key="page.id" 
@@ -22,92 +18,65 @@
             :class="{ 'active-page': page.id === activePageId }"
             @click="setActivePage(page.id)"
           >
-            <!-- Ícone de arraste -->
-            <div class="drag-handle">⋮⋮</div>
-            
-            <!-- Nome da Página -->
-            <div class="page-info">
-              <span class="page-name">{{ page.number }} - {{ page.name }}</span>
-            </div>
-            
-            <!-- Ações (Edit / Delete) com .stop para não conflitar com o Drag -->
-            <div class="page-actions">
-              <button @click.stop="editPage(page.id)" class="icon-btn" title="Editar">✎</button>
-              <button @click.stop="deletePage(index)" class="icon-btn delete-btn" title="Excluir">🗑️</button>
+            <div class="page-main-row">
+              <div class="info-area">
+                <span class="index">#{{ index + 1 }}</span>
+                <span class="name">{{ page.name }}</span>
+              </div>
+              
+              <!-- Botão de Excluir -->
+              <button @click.stop="deletePage(index)" class="btn-delete-full" title="Excluir Lanche">
+                ✕
+              </button>
             </div>
           </div>
-        </VueDraggable>
-      </div>
+        </div>
 
-      <button class="add-snack-btn">
-        + Adicionar Lanche
-      </button>
-    </section>
+        <button class="add-snack-btn">
+          + Adicionar Lanche
+        </button>
+      </section>
+    </div>
 
-    <!-- SEÇÃO 2: CONFIGURAÇÕES DO GUIA -->
-    <section class="sidebar-section settings-section">
-      <header class="section-header flex-between">
-        <h3 class="section-title">CONFIGURAÇÕES DO GUIA</h3>
-        <button class="icon-btn add-btn">+</button>
-      </header>
-
-      <!-- Layout do Card -->
-      <div class="setting-group">
-        <label class="setting-label">Layout do Card</label>
-        <div class="layout-options">
-          <button class="layout-btn active">📄</button>
-          <button class="layout-btn">🪟</button>
-          <button class="layout-btn">🗂️</button>
+    <!-- DIV 2: RESUMO E MODO DE IMPRESSÃO (Fixados no rodapé) -->
+    <div class="bottom-content">
+      
+      <!-- Card de Resumo do Guia -->
+      <div class="summary-card">
+        <div class="summary-row">
+          <span class="summary-label">Total de Lanches</span>
+          <span class="summary-value">{{ pages.length }}</span>
         </div>
       </div>
 
-      <!-- Fundo do Card -->
-      <div class="setting-group">
-        <label class="setting-label">Fundo do Card</label>
-        <div class="color-options">
-          <button class="color-circle bg-dark active"></button>
-          <button class="color-circle bg-black"></button>
-          <button class="color-circle bg-white"></button>
-          <button class="color-circle bg-texture"></button>
-          <button class="color-circle add-color">+</button>
-        </div>
-      </div>
+      <section class="sidebar-section print-section">
+        <header class="section-header">
+          <h3 class="section-title">🖨️ MODO DE IMPRESSÃO</h3>
+          <p class="section-subtitle">Ajuste o layout e gere o PDF</p>
+        </header>
 
-      <!-- Fonte do Título -->
-      <div class="setting-group">
-        <label class="setting-label">Fonte do Título</label>
-        <div class="select-wrapper">
-          <select v-model="selectedFont" class="dark-select">
-            <option value="Bebas Neue">Bebas Neue</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Roboto">Roboto</option>
-          </select>
+        <div class="print-actions">
+          <button @click="openPrintMode" class="primary-btn">
+            Visualizar Impressão
+            <span class="arrow-icon">→</span>
+          </button>
         </div>
-      </div>
-
-      <!-- Cor do Título -->
-      <div class="setting-group">
-        <label class="setting-label">Cor do Título</label>
-        <div class="color-options">
-          <button class="color-circle color-orange active"></button>
-          <button class="color-circle color-white"></button>
-          <button class="color-circle color-gray"></button>
-          <button class="color-circle color-red"></button>
-        </div>
-      </div>
-
-    </section>
+      </section>
+    </div>
 
   </aside>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { VueDraggable } from 'vue-draggable-plus'
+
+// --- EVENTOS (EMITS) ---
+const emit = defineEmits(['open-print-mode'])
 
 // --- ESTADO DAS PÁGINAS ---
-const activePageId = ref(1) // ID do lanche atualmente selecionado
+const activePageId = ref(1)
 
+// O "number" (01, 02) não é mais estritamente necessário no array já que estamos usando {{ index + 1 }} no template, mas mantive a estrutura.
 const pages = ref([
   { id: 1, number: '01', name: 'Alasca Burguer' },
   { id: 2, number: '02', name: 'Cheddar Bacon' },
@@ -117,6 +86,7 @@ const pages = ref([
   { id: 6, number: '06', name: 'Veggie Burguer' }
 ])
 
+// --- FUNÇÕES ---
 const setActivePage = (id) => {
   activePageId.value = id
 }
@@ -125,28 +95,46 @@ const deletePage = (index) => {
   pages.value.splice(index, 1)
 }
 
-const editPage = (id) => {
-  console.log('Editando página', id)
+const openPrintMode = () => {
+  emit('open-print-mode')
 }
-
-// --- ESTADO DAS CONFIGURAÇÕES ---
-const selectedFont = ref('Bebas Neue')
-
 </script>
 
 <style scoped>
+/* Reset de Botão Padrão */
+button {
+  background-color: transparent;
+}
+
 /* Container Principal */
 .guide-settings-sidebar {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 32px;
-  width: 350px; /* Largura baseada na proporção da imagem */
+  width: 350px;
+  height: 100vh;
   background-color: #121212;
   color: #ffffff;
   padding: 20px;
   box-sizing: border-box;
   font-family: sans-serif;
-  border-left: 1px solid #222; /* Divisória sutil se houver algo à esquerda */
+  border-left: 1px solid #222;
+}
+
+/* Divisões principais */
+.top-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.bottom-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
 }
 
 /* Seções Gerais */
@@ -154,18 +142,13 @@ const selectedFont = ref('Bebas Neue')
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
 }
 
 .section-header {
   display: flex;
   flex-direction: column;
   gap: 4px;
-}
-
-.section-header.flex-between {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .section-title {
@@ -182,194 +165,200 @@ const selectedFont = ref('Bebas Neue')
   margin: 0;
 }
 
-/* --- LISTA DE PÁGINAS --- */
+/* --- LISTA DE PÁGINAS (Estilo Card) --- */
 .pages-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
+.pages-list::-webkit-scrollbar { width: 6px; }
+.pages-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+/* Item da Lista (Container) */
 .page-item {
+  border-radius: 8px;
   display: flex;
-  align-items: center;
-  background-color: transparent;
-  padding: 10px 12px;
-  border-radius: 6px;
+  flex-direction: column;
+  background-color: #1e1e1e;
   border: 1px solid #2a2a2a;
-  cursor: grab;
-  transition: all 0.2s;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.2s;
 }
 
-.page-item:active {
-  cursor: grabbing;
+.page-item:hover {
+  border-color: #444;
 }
 
-/* Estado Ativo (Lanche selecionado na imagem) */
+/* Estado Ativo (Lanche selecionado) */
 .page-item.active-page {
   border-color: #f38b41;
 }
 
-.page-item.active-page .page-name {
+.page-item.active-page .name {
   color: #f38b41;
 }
 
-.ghost-page {
-  opacity: 0.4;
-  background-color: #222;
-  border: 1px dashed #666;
-}
-
-.drag-handle {
-  color: #555;
-  margin-right: 12px;
-  font-size: 1.2rem;
-}
-
-.page-info {
-  flex-grow: 1;
-}
-
-.page-name {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #ccc;
-  transition: color 0.2s;
-}
-
-.page-actions {
+/* Linha Principal do Item */
+.page-main-row {
   display: flex;
+  align-items: center;
+  padding: 0 0 0 12px;
+  height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Info do Lanche (# e Nome) */
+.info-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-/* Botões */
-.icon-btn {
-  background: transparent;
-  border: none;
-  color: #777;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 4px;
+.index {
+  font-size: 9px;
+  font-weight: 800;
+  color: #fb923c;
+  min-width: 18px;
+}
+
+.name {
+  font-size: 10px;
+  font-weight: 800;
+  color: #e5e5e5;
+  text-transform: uppercase;
   transition: color 0.2s;
 }
 
-.icon-btn:hover {
-  color: #fff;
+/* Botão de Editar */
+.btn-edit {
+  margin-right: 6px;
+  color: #888;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
+.btn-edit:hover {
+  color: #fff;
+  background-color: #333;
+}
+
+/* Botão de Excluir Item */
+.btn-delete-full {
+  width: 45px;
+  height: 100%;
+  border: none;
+  color: #777;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-left: 1px solid #2a2a2a;
+  background-color: #161616;
+}
+
+.btn-delete-full:hover {
+  color: #cc3333;
+  background-color: #111;
+}
+
+/* Botão Adicionar Lanche */
 .add-snack-btn {
   background-color: transparent;
-  border: 1px solid #333;
-  color: #ccc;
+  border: 1px dashed #444;
+  color: #888;
   padding: 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.2s;
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .add-snack-btn:hover {
   background-color: #1e1e1e;
-  border-color: #555;
+  border-color: #666;
+  color: #ccc;
 }
 
-/* --- CONFIGURAÇÕES --- */
-.setting-group {
+/* --- CARD DE RESUMO --- */
+.summary-card {
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 12px;
 }
 
-.setting-label {
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
   font-size: 0.75rem;
-  color: #a0a0a0;
-}
-
-/* Layout Options */
-.layout-options {
-  display: flex;
-  gap: 12px;
-}
-
-.layout-btn {
-  width: 48px;
-  height: 48px;
-  background-color: transparent;
-  border: 1px solid #333;
-  border-radius: 6px;
   color: #888;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
+  font-weight: 500;
 }
 
-.layout-btn.active {
-  border-color: #f38b41;
-  color: #f38b41;
-}
-
-/* Color Circles */
-.color-options {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.color-circle {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.color-circle.active {
-  border-color: #f38b41;
-  padding: 2px;
-  background-clip: content-box;
-}
-
-/* Cores específicas de Fundo */
-.bg-dark { background-color: #1a1a1a; }
-.bg-black { background-color: #000000; }
-.bg-white { background-color: #ffffff; }
-.bg-texture { background-color: #8b5a2b; /* Marrom imitando madeira da imagem */ }
-
-/* Cores específicas de Título */
-.color-orange { background-color: #d19a22; }
-.color-white { background-color: #ffffff; }
-.color-gray { background-color: #444444; }
-.color-red { background-color: #a52a2a; }
-
-.add-color {
-  background: transparent;
-  border: 1px dashed #666;
-  color: #666;
-  font-size: 1rem;
-}
-
-/* Select de Fonte */
-.select-wrapper {
-  background-color: #1e1e1e;
-  border-radius: 6px;
-  border: 1px solid #333;
-  padding: 0 12px;
-}
-
-.dark-select {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: #ccc;
-  padding: 10px 0;
-  outline: none;
+.summary-value {
   font-size: 0.85rem;
-  appearance: none; /* Remove seta padrão do navegador em alguns casos */
+  color: #f38b41;
+  font-weight: 800;
+}
+
+/* --- MODO DE IMPRESSÃO --- */
+.print-section {
+  padding-top: 20px;
+  border-top: 1px solid #222;
+}
+
+.primary-btn {
+  width: 100%;
+  background-color: #f38b41;
+  color: #121212;
+  border: none;
+  padding: 14px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.primary-btn:hover {
+  background-color: #d17530;
+}
+
+.primary-btn:active {
+  transform: scale(0.98);
+}
+
+.arrow-icon {
+  font-size: 1.1rem;
 }
 </style>
