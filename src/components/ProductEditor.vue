@@ -1,28 +1,3 @@
-<script setup>
-
-import { ref } from 'vue'
-// Importando o componente correto
-import { VueDraggable } from 'vue-draggable-plus'
-
-const snackName = ref('01 - Alasca Burguer')
-
-const ingredients = ref([
-    { id: 1, name: 'Pão Brioche', obs: '' },
-    { id: 2, name: 'Molho Alasca', obs: 'Obs: Molho especial da casa' },
-    { id: 3, name: 'Bacon', obs: '' },
-    { id: 4, name: 'Queijo Cheddar', obs: '' },
-    { id: 5, name: 'Carne 180g', obs: 'Obs: Ponto da carne: ao ponto' },
-    { id: 6, name: 'Alface', obs: '' },
-    { id: 7, name: 'Tomate', obs: '' },
-    { id: 8, name: 'Cebola Roxa', obs: '' },
-    { id: 9, name: 'Picles', obs: '' }
-])
-
-const removeIngredient = (index) => {
-    ingredients.value.splice(index, 1)
-}
-</script>
-
 <template>
     <div class="product-editor">
 
@@ -35,7 +10,6 @@ const removeIngredient = (index) => {
                 <div class="input-group">
                     <input type="text" v-model="snackName" class="dark-input" />
                     <button class="icon-btn" aria-label="Editar">
-                        <!-- Ícone de Lápis (placeholder) -->
                         ✎
                     </button>
                 </div>
@@ -50,15 +24,44 @@ const removeIngredient = (index) => {
                     <VueDraggable v-model="ingredients" ghost-class="ghost-item" :animation="200">
                         <div v-for="(item, index) in ingredients" :key="item.id" class="ingredient-item">
 
-                            <div class="info-area">
-                                <span class="index">#</span>
-                                <span class="name">{{ item.name }}</span>
+                            <!-- LINHA PRINCIPAL -->
+                            <div class="ingredient-main-row">
+                                <div class="info-area">
+                                    <span class="index">#{{ index + 1 }}</span>
+                                    <span class="name">{{ item.name }}</span>
+                                </div>
+
+                                <img v-if="item.image" :src="item.image" :alt="item.name" class="ingredient-img" />
+
+                                <!-- Adicionado um :class dinâmico para quando estiver aberto -->
+                                <button @click.stop="toggleObs(item)" class="btn-observation"
+                                    :class="{ 'is-open': openObsId === item.id }" title="Adicionar Observação">
+                                    <ObservationIcon />
+                                </button>
+
+                                <!-- Botão deletar (só aparece se estiver fechado) -->
+                                <button v-if="openObsId !== item.id" @click.stop="removeIngredient(index)"
+                                    class="btn-delete-full" aria-label="Remover">
+                                    ✕
+                                </button>
                             </div>
 
-                            <img src="" alt="" class="ingredient-img" />
+                            <!-- CAIXA DE OBSERVAÇÃO -->
+                            <div v-if="openObsId === item.id" class="ingredient-obs-row">
 
-                            <button @click.stop="removeIngredient(index)" class="btn-delete-full"
-                                aria-label="Remover">✕</button>
+                                <div class="obs-header">
+                                    <span class="obs-label">OBSERVAÇÃO</span>
+                                    <!-- REMOVIDO o botão "X" daqui! Deixamos só o rótulo -->
+                                </div>
+
+                                <textarea v-model="item.obs" class="obs-textarea"
+                                    placeholder="Digite a observação para este item..."></textarea>
+
+                                <button @click.stop="closeObs" class="btn-close-obs">
+                                    ✓ Concluído
+                                </button>
+                            </div>
+
                         </div>
                     </VueDraggable>
                 </div>
@@ -70,12 +73,11 @@ const removeIngredient = (index) => {
             <div class="canvas-area light-canvas">
 
                 <!-- Elementos Fixados no Topo -->
-                <!-- Número de identificação fixado à esquerda -->
                 <span class="item-number">1</span>
 
                 <h2 class="canvas-title">{{ snackName }}</h2>
 
-                <!-- Divisória fixa com tamanho fixo -->
+                <!-- Divisória fixa -->
                 <div class="canvas-divider"></div>
 
                 <!-- Texto Centralizado -->
@@ -94,8 +96,58 @@ const removeIngredient = (index) => {
     </div>
 </template>
 
+<script setup>
+import { ref } from 'vue'
+import { VueDraggable } from 'vue-draggable-plus'
+import ObservationIcon from './icons/ObservationIcon.vue'
+
+// Estado principal
+const snackName = ref('01 - Alasca Burguer')
+
+const openObsId = ref(null)
+
+// Alterna a abertura/fechamento da observação
+const toggleObs = (item) => {
+    if (openObsId.value === item.id) {
+        // Se clicar no botão de um item que já está aberto, ele fecha
+        openObsId.value = null
+    } else {
+        // Caso contrário, abre a caixa para este item (o que fecha os outros automaticamente)
+        openObsId.value = item.id
+        // Zera o texto sempre que abrir, conforme você pediu antes
+        item.obs = ''
+    }
+}
+
+// Função simples apenas para fechar a caixa
+const closeObs = () => {
+    openObsId.value = null
+}
+
+const ingredients = ref([
+    { id: 1, name: 'Pão Brioche', obs: '' },
+    { id: 2, name: 'Molho Alasca', obs: 'Obs: Molho especial da casa' },
+    { id: 3, name: 'Bacon', obs: '' },
+    { id: 4, name: 'Queijo Cheddar', obs: '' },
+    { id: 5, name: 'Carne 180g', obs: 'Obs: Ponto da carne: ao ponto' },
+    { id: 6, name: 'Alface', obs: '' },
+    { id: 7, name: 'Tomate', obs: '' },
+    { id: 8, name: 'Cebola Roxa', obs: '' },
+    { id: 9, name: 'Picles', obs: '' }
+])
+
+const removeIngredient = (index) => {
+    ingredients.value.splice(index, 1)
+}
+</script>
+
 <style scoped>
-/* Estilos básicos inspirados no modo escuro da imagem */
+/* Reset de Botão Padrão */
+button {
+    background-color: transparent;
+}
+
+/* Container Principal */
 .product-editor {
     display: flex;
     gap: 24px;
@@ -143,7 +195,7 @@ const removeIngredient = (index) => {
     margin: 0 0 8px 0;
 }
 
-/* Inputs e Textareas */
+/* Input "Lanche Atual" */
 .input-group {
     display: flex;
     align-items: center;
@@ -162,93 +214,7 @@ const removeIngredient = (index) => {
     outline: none;
 }
 
-.textarea-wrapper {
-    position: relative;
-    background-color: #1e1e1e;
-    border-radius: 6px;
-    border: 1px solid #333;
-}
-
-.dark-textarea {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: #ccc;
-    padding: 12px;
-    outline: none;
-    resize: none;
-    box-sizing: border-box;
-    font-size: 0.85rem;
-    line-height: 1.4;
-}
-
-.char-count {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    font-size: 0.7rem;
-    color: #666;
-}
-
-/* Lista de Ingredientes */
-.ingredients-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-/* Scrollbar customizada para a lista */
-.ingredients-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.ingredients-list::-webkit-scrollbar-thumb {
-    background: #333;
-    border-radius: 4px;
-}
-
-.ingredient-item {
-    display: flex;
-    align-items: center;
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #2a2a2a;
-}
-
-.drag-handle {
-    color: #555;
-    cursor: grab;
-    margin-right: 12px;
-    font-size: 1.2rem;
-}
-
-.ingredient-icon {
-    font-size: 1.5rem;
-    margin-right: 12px;
-}
-
-.ingredient-info {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.ingredient-name {
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
-.ingredient-obs {
-    font-size: 0.7rem;
-    color: #888;
-    margin-top: 2px;
-}
-
 .icon-btn {
-    background: transparent;
     border: none;
     color: #888;
     cursor: pointer;
@@ -259,17 +225,178 @@ const removeIngredient = (index) => {
     color: #fff;
 }
 
-.drop-zone-remove {
-    margin-top: 10px;
-    border: 1px dashed #444;
-    border-radius: 6px;
-    padding: 12px;
-    text-align: center;
-    color: #666;
-    font-size: 0.8rem;
+/* Lista de Ingredientes (Scroll) */
+.ingredients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 4px;
 }
 
-/* Coluna Direita - Canvas */
+.ingredients-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ingredients-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+/* Item da Lista (Container) */
+.ingredient-item {
+    border-radius: 8px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    border: 1px solid #2a2a2a;
+    cursor: grab;
+    overflow: hidden;
+}
+
+.ingredient-item:active {
+    cursor: grabbing;
+}
+
+.ghost-item {
+    opacity: 0.5;
+    background-color: #222;
+    border: 1px dashed #666;
+}
+
+/* Linha Principal do Item */
+.ingredient-main-row {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 12px;
+    height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Info do Ingrediente (# e Nome) */
+.info-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.index {
+    font-size: 9px;
+    font-weight: 800;
+    color: #fb923c;
+    min-width: 18px;
+}
+
+.name {
+    font-size: 10px;
+    font-weight: 800;
+    color: #e5e5e5;
+    text-transform: uppercase;
+}
+
+/* Imagem do Ingrediente */
+.ingredient-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    margin-right: 10px;
+    mix-blend-mode: multiply;
+    /* Funciona bem para fundos brancos, pode remover se suas imagens forem PNG com fundo transparente */
+}
+
+/* Botão de Observação */
+.btn-observation {
+    margin-right: 6px;
+    color: #cc3333;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-observation:hover {
+    background-color: #333;
+    border-color: #cc3333;
+}
+
+/* Botão de Fechar/Remover Item */
+.btn-delete-full {
+    width: 45px;
+    height: 100%;
+    border: none;
+    color: #777;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border-left: 1px solid #2a2a2a;
+    background-color: #161616;
+}
+
+.btn-delete-full:hover {
+    color: #cc3333;
+    background-color: #111;
+}
+
+/* --- ESTILOS DA CAIXA DE OBSERVAÇÃO --- */
+.ingredient-obs-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background-color: #161616;
+    border-top: 1px solid #2a2a2a;
+    cursor: default;
+}
+
+.obs-textarea {
+    width: 100%;
+    background-color: #111111;
+    color: #e5e5e5;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    resize: vertical;
+    min-height: 60px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.obs-textarea:focus {
+    border-color: #fb923c;
+}
+
+.btn-close-obs {
+    align-self: flex-end;
+    background-color: #2a2a2a;
+    color: #e5e5e5;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-close-obs:hover {
+    background-color: #fb923c;
+    color: #fff;
+}
+
+/* --- COLUNA DIREITA - CANVAS --- */
 .editor-main {
     flex-grow: 1;
     display: flex;
@@ -281,24 +408,55 @@ const removeIngredient = (index) => {
     padding: 20px;
 }
 
-.canvas-area {
+.canvas-area.light-canvas {
+    position: relative;
     width: 100%;
-    max-width: 500px;
-    aspect-ratio: 3/4;
-    /* Proporção aproximada do card na imagem */
-    background-color: #242424;
-    border: 2px dashed #444;
-    border-radius: 8px;
+    max-width: 400px;
+    aspect-ratio: 9/16;
+    background-color: #fffdfc;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.canvas-placeholder {
-    color: #666;
-    font-size: 1.5rem;
-    font-weight: bold;
-    letter-spacing: 2px;
+.item-number {
+    position: absolute;
+    top: 35px;
+    left: 5%;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #1a1a24;
+}
+
+.canvas-title {
+    position: absolute;
+    top: 35px;
+    width: 100%;
+    text-align: center;
+    color: #1a1a24;
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.canvas-divider {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    height: 2px;
+    background-color: #f38b41;
+}
+
+.canvas-empty-text {
+    color: #d8d8dd;
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Paginação */
@@ -331,191 +489,65 @@ const removeIngredient = (index) => {
     color: #ccc;
 }
 
-/* Atualize a classe do item para ter o cursor de arrastar */
-.ingredient-item {
+/* Cabeçalho da Observação e Botão X */
+.obs-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #2a2a2a;
-    cursor: grab;
-    /* Adicionado aqui */
+    margin-bottom: 2px;
 }
 
-/* Quando estiver arrastando (clicando e segurando) */
-.ingredient-item:active {
-    cursor: grabbing;
-}
-
-/* Você pode remover o cursor do drag-handle agora, mantendo apenas a cor/margem */
-.drag-handle {
-    color: #555;
-    margin-right: 12px;
-    font-size: 1.2rem;
-}
-
-/* Novo estilo do Canvas (Claro) */
-.canvas-area.light-canvas {
-    position: relative;
-    /* Essencial para fixar os itens absolutos dentro dele */
-    width: 100%;
-    max-width: 400px;
-    aspect-ratio: 9/16;
-    background-color: #fffdfc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-
-    /* Mantemos o flex apenas para centralizar a palavra "VAZIO" no meio da tela */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Badge "EDITANDO" Fixado */
-.edit-badge {
-    position: absolute;
-    top: 10px;
-    right: 15px;
+.obs-label {
     font-size: 0.65rem;
-    font-weight: 800;
-    color: #f38b41;
+    color: #888;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Título Fixado */
-.canvas-title {
-    position: absolute;
-    top: 35px;
-    /* Distância fixa do topo */
-    width: 100%;
-    text-align: center;
-    color: #1a1a24;
-    font-size: 1.1rem;
-    font-weight: 900;
-    margin: 0;
-    text-transform: uppercase;
-}
-
-/* Divisória Laranja Fixada com Tamanho Fixo */
-.canvas-divider {
-    position: absolute;
-    top: 70px;
-    /* Distância fixa exata a partir do topo do canvas */
-    left: 50%;
-    transform: translateX(-50%);
-    /* Centraliza a linha perfeitamente */
-    width: 75%;
-    /* Tamanho fixo da linha (pode usar pixels também, ex: 360px) */
-    height: 2px;
-    /* Espessura fixa */
-    background-color: #f38b41;
-}
-
-.canvas-empty-text {
-    color: #d8d8dd;
-    font-size: 1rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Número do Item Fixado à Esquerda */
-.item-number {
-    position: absolute;
-    top: 35px;
-    /* Mesma altura do título para ficarem alinhados */
-    left: 5%;
-    /* Fixado no lado esquerdo (acompanhando o início da divisória) */
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: #1a1a24;
-}
-
-/* Título Fixado */
-.canvas-title {
-    position: absolute;
-    top: 35px;
-    width: 100%;
-    text-align: center;
-    color: #1a1a24;
-    font-size: 1.1rem;
-    font-weight: 900;
-    margin: 0;
-    text-transform: uppercase;
-}
-
-/* Divisória Laranja Fixada com Tamanho Fixo */
-.canvas-divider {
-    position: absolute;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    /* 95% deixa 2.5% de espaço de cada lado. O 'left: 5%' do item-number o alinha com o começo da linha */
-    height: 2px;
-    background-color: #f38b41;
-}
-
-
-
-
-
-
-
-.info-area {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.index {
-    font-size: 9px;
-    font-weight: 800;
-    color: #fb923c;
-    min-width: 18px;
-}
-
-.name {
-    font-size: 10px;
-    font-weight: 800;
-    color: #374151;
-    text-transform: uppercase;
-}
-
-.ingredient-img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-    margin-right: 10px;
-    mix-blend-mode: multiply;
-}
-
-.btn-delete-full {
-    width: 45px;
-    height: 100%;
+.btn-close-x {
+    background: transparent;
     border: none;
-    color: #d1d5db;
-    font-size: 14px;
+    color: #888;
+    font-size: 1.1rem;
     cursor: pointer;
+    padding: 0 4px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color 0.2s;
+}
+
+.btn-close-x:hover {
+    color: #cc3333;
+}
+
+/* ... estilos existentes do botão ... */
+.btn-observation {
+    margin-right: 6px;
+    color: #cc3333;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     transition: all 0.2s;
 }
 
-.btn-delete-full:hover {
-    background: #fee2e2;
-    color: #ef4444;
+.btn-observation:hover {
+    background-color: #333;
+    border-color: #cc3333;
 }
 
-.ingredient-item {
-    border-radius: 8px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    padding: 0 0 0 12px;
-    height: 48px;
+/* NOVO: Estado quando a observação está aberta */
+.btn-observation.is-open {
+    background-color: #cc3333;
+    color: #ffffff;
+    /* Ícone fica branco */
+    border-color: #cc3333;
+    /* Adiciona uma margem simulando o espaço do botão de lixeira que sumiu */
+    margin-right: 12px;
 }
 </style>
