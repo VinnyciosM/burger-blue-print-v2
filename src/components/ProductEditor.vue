@@ -89,12 +89,6 @@
                 </div>
 
             </div>
-
-            <div class="pagination-controls">
-                <button class="page-btn">‹</button>
-                <span class="page-indicator">{{ snackIndex + 1 }} / 12</span>
-                <button class="page-btn">›</button>
-            </div>
         </div>
     </div>
 </template>
@@ -412,8 +406,7 @@ button {
 
 .canvas-area.light-canvas {
     position: relative;
-    width: 100%;
-    max-width: 400px;
+    width: 85%;
     aspect-ratio: 9/16;
     background-color: #fffdfc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);

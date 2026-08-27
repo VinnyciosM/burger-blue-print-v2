@@ -1,3 +1,72 @@
+<template>
+  <!-- <LoginScreen v-if="!isAuthenticated" @login-success="handleLoginSuccess" /> -->
+
+  <div v-if="!isPrintMode" class="app-container">
+    <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
+    
+    <ProductEditor v-if="currentSnack" class="product-editor" :snack="currentSnack" :snackIndex="currentSnackIndex" />
+    
+    <GuideManager class="guide-manager" v-model:snacks="snacks" :activeSnackId="activeSnackId"
+      @open-print-mode="isPrintMode = true" @add-snack="createNewSnack" @select-snack="selectSnack"
+      @delete-snack="deleteSnack" />
+  </div>
+
+  <div v-else class="print-container">
+    
+    <!-- O Canvas agora tem espaço de sobra na esquerda/centro -->
+    <PrintCanvas :snacks="snacks" :settings="printSettings" class="print-canvas-area" />
+
+    <!-- NOVA COLUNA UNIFICADA (Direita) -->
+    <aside class="unified-sidebar">
+      
+      <!-- Cabeçalho Fixo: Botão de Voltar -->
+      <div class="sidebar-global-header">
+        <button @click="isPrintMode = false" class="btn-back-global">
+          ← Voltar para edição
+        </button>
+      </div>
+
+      <!-- Abas de Navegação -->
+      <div class="sidebar-tabs">
+        <button 
+          @click="printTab = 'settings'" 
+          class="tab-btn" 
+          :class="{ active: printTab === 'settings' }"
+        >
+          ⚙️ Configurações
+        </button>
+        <button 
+          @click="printTab = 'order'" 
+          class="tab-btn" 
+          :class="{ active: printTab === 'order' }"
+        >
+          📚 Ordem
+        </button>
+      </div>
+
+      <!-- Área de Conteúdo (Alterna os componentes) -->
+      <div class="sidebar-content">
+        <PrintSettingsSidebar 
+          v-if="printTab === 'settings'" 
+          @back-to-edit="isPrintMode = false" 
+          @update-settings="updatePrintSettings" 
+          class="inner-sidebar"
+        />
+
+        <PrintOrderSidebar 
+          v-else
+          v-model:snacks="snacks" 
+          :settings="printSettings" 
+          @delete-snack="deleteSnack"
+          @add-snack="createNewSnack" 
+          class="inner-sidebar"
+        />
+      </div>
+
+    </aside>
+  </div>
+</template>
+
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 
@@ -7,17 +76,18 @@ import ProductEditor from './components/ProductEditor.vue';
 import GuideManager from './components/GuideManager.vue';
 import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
-import TopNavBar from './components/TopNavBar.vue';
+// import TopNavBar from './components/TopNavBar.vue';
+import PrintOrderSidebar from './components/PrintOrderSidebar.vue';
 
-// --- ESTADO DE NAVEGAÇÃO ---
 const isAuthenticated = ref(false)
 const isPrintMode = ref(false)
 
-// --- ESTADO GLOBAL (FONTE DA VERDADE) ---
+// NOVO: Estado que controla qual aba da impressão está aberta
+const printTab = ref('settings') // Começa nas configurações
+
 const snacks = ref([])
 const activeSnackId = ref(null)
 
-// --- CONFIGURAÇÕES DE IMPRESSÃO ---
 const printSettings = ref({
   paper: 'a4',
   orientation: 'landscape',
@@ -31,9 +101,7 @@ const updatePrintSettings = (newSettings) => {
   printSettings.value = newSettings
 }
 
-// --- LOCAL STORAGE & INICIALIZAÇÃO ---
 onMounted(() => {
-  // Verifica se o usuário já estava logado
   const savedAuth = localStorage.getItem('keeta_auth')
   if (savedAuth === 'true') {
     isAuthenticated.value = true
@@ -52,10 +120,9 @@ onMounted(() => {
   }
 })
 
-// Função acionada pelo LoginScreen
 const handleLoginSuccess = () => {
   isAuthenticated.value = true
-  localStorage.setItem('keeta_auth', 'true') // Salva o login no cache
+  localStorage.setItem('keeta_auth', 'true')
 }
 
 watch(snacks, (newVal) => {
@@ -68,7 +135,6 @@ watch(activeSnackId, (newVal) => {
   }
 })
 
-// --- COMPUTED PROPERTIES ---
 const currentSnack = computed(() => {
   return snacks.value.find(s => s.id === activeSnackId.value)
 })
@@ -77,7 +143,6 @@ const currentSnackIndex = computed(() => {
   return snacks.value.findIndex(s => s.id === activeSnackId.value)
 })
 
-// --- AÇÕES DO GERENCIADOR ---
 const createNewSnack = () => {
   const newId = Date.now()
   snacks.value.push({
@@ -103,7 +168,6 @@ const deleteSnack = (index) => {
   }
 }
 
-// --- AÇÕES DE INGREDIENTES ---
 const handleAddIngredient = (ingredient) => {
   if (currentSnack.value) {
     currentSnack.value.ingredients.push({
@@ -116,57 +180,124 @@ const handleAddIngredient = (ingredient) => {
 }
 </script>
 
-<template>
-
- <!--  <div>
-    <LoginScreen />
-  </div> -->
-
-  <div v-if="!isPrintMode" class="app-container">
-    <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
-
-    <ProductEditor v-if="currentSnack" class="product-editor" :snack="currentSnack" :snackIndex="currentSnackIndex" />
-
-    <GuideManager class="guide-manager" v-model:snacks="snacks" :activeSnackId="activeSnackId"
-      @open-print-mode="isPrintMode = true" @add-snack="createNewSnack" @select-snack="selectSnack"
-      @delete-snack="deleteSnack" />
-  </div>
-
-  <div v-else class="print-container">
-    <PrintCanvas :snacks="snacks" :settings="printSettings" />
-    <PrintSettingsSidebar @back-to-edit="isPrintMode = false" @update-settings="updatePrintSettings" />
-  </div>
-</template>
-
 <style>
 body {
   margin: 0;
   background-color: #121212;
   color: #fff;
+  overflow: hidden;
 }
 
-.app-container {
+.app-container, .print-container {
   display: flex;
   height: 100vh;
+  width: 100vw;
 }
 
-.print-container {
-  display: flex;
-  height: 100vh;
-}
+.ingredient-sidebar { width: 100%; max-width: 500px; min-width: 320px; flex-shrink: 1; }
+.product-editor { flex: 1; }
+.guide-manager { flex-shrink: 0; }
 
-.ingredient-sidebar {
-  width: 100%;
-  max-width: 500px;
-  min-width: 320px;
-  flex-shrink: 1;
-}
+/* =========================================
+   NOVO: ESTILOS DA COLUNA UNIFICADA
+========================================= */
 
-.product-editor {
+.print-canvas-area {
   flex: 1;
+  min-width: 0; /* Garante que o canvas pode encolher se necessário */
 }
 
-.guide-manager {
+.unified-sidebar {
+  width: 380px; /* Levemente mais largo para acomodar bem as duas abas */
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #121212;
+  border-left: 1px solid #222;
   flex-shrink: 0;
+}
+
+.sidebar-global-header {
+  padding: 20px 20px 10px 20px;
+  background-color: #1a1a1a;
+}
+
+.btn-back-global {
+  background: transparent;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.btn-back-global:hover {
+  background: #2a2a2a;
+  color: #fff;
+  border-color: #555;
+}
+
+.sidebar-tabs {
+  display: flex;
+  background-color: #1a1a1a;
+  padding: 0 20px;
+  gap: 8px;
+  border-bottom: 1px solid #222;
+}
+
+.tab-btn {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  color: #888;
+  padding: 12px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tab-btn:hover {
+  color: #ccc;
+}
+
+.tab-btn.active {
+  color: #f38b41;
+  border-bottom-color: #f38b41;
+}
+
+.sidebar-content {
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+}
+
+/* SOBRESCRITAS MÁGICAS: 
+   Faz os componentes filhos se ajustarem ao novo container 
+   sem precisar alterar o código interno deles! */
+.inner-sidebar {
+  width: 100% !important;
+  height: 100% !important;
+  border-left: none !important;
+  padding-top: 20px !important;
+}
+
+/* Esconde o botão "Voltar" que estava dentro do PrintSettingsSidebar, 
+   já que agora temos um global fixo no topo da aba */
+.inner-sidebar .btn-back {
+  display: none !important;
 }
 </style>
