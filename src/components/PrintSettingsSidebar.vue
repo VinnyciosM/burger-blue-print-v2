@@ -50,20 +50,13 @@
         <label class="setting-label">Guias por folha</label>
         <div class="grid-buttons">
           <button 
-            v-for="num in [1, 2, 4, 6]" 
+            v-for="num in [1, 2, 3, 4]" 
             :key="num"
             class="grid-btn"
             :class="{ active: settings.itemsPerPage === num }"
             @click="settings.itemsPerPage = num"
           >
             {{ num }}
-          </button>
-          <button 
-            class="grid-btn"
-            :class="{ active: settings.itemsPerPage === 'custom' }"
-            @click="settings.itemsPerPage = 'custom'"
-          >
-            Personalizado
           </button>
         </div>
         <p class="setting-help">Escolha quantos guias serão impressos em cada folha.</p>

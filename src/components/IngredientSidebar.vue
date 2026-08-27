@@ -2,78 +2,59 @@
   <aside class="ingredient-sidebar">
     <div class="sidebar-header">
       <div class="title-row">
-        <!-- Ícone SVG Placeholder -->
         <span class="icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </span>
         <h2>INGREDIENTES</h2>
       </div>
-
-      <p>Arraste os ingredientes para a coluna ao lado</p>
+      <p>Clique ou arraste para a coluna ao lado</p>
     </div>
 
     <div class="search">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Buscar ingrediente..."
-      />
-      <span class="search-icon">⌕</span>
+      <input v-model="search" type="text" placeholder="Buscar ingrediente..." />
     </div>
 
     <!-- Lista de Categorias -->
     <div class="categories-list">
-      <div 
-        v-for="category in filteredCategories" 
-        :key="category.id" 
-        class="category-block"
-      >
-        <!-- Cabeçalho da Categoria -->
+      <div v-for="category in filteredCategories" :key="category.id" class="category-block">
+
         <div class="category-header">
           <span class="category-icon">
-            <!-- Ícone SVG Placeholder - Substitua pelos originais -->
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f38b41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f38b41" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </span>
           <h3 class="category-title">{{ category.name }}</h3>
         </div>
 
-        <!-- Grid de Ingredientes da Categoria -->
         <div class="ingredient-grid">
-          <div
-            v-for="ingredient in category.items"
-            :key="ingredient.id"
-            class="ingredient-card"
-            draggable="true"
-            @dragstart="onDragStart(ingredient, $event)"
-          >
+          <div v-for="ingredient in category.items" :key="ingredient.id" class="ingredient-card" draggable="true"
+            @dragstart="onDragStart(ingredient, $event)" @click="$emit('add-ingredient', ingredient)">
             <div class="ingredient-image">
-              <img
-                :src="ingredient.image"
-                :alt="ingredient.name"
-              />
+              <img :src="ingredient.image" :alt="ingredient.name" />
             </div>
-
             <div class="ingredient-name">
               {{ ingredient.name }}
             </div>
           </div>
         </div>
+
       </div>
     </div>
-    
   </aside>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
 
+const emit = defineEmits(['add-ingredient'])
 const search = ref('')
 
-// Estrutura atualizada dividida em categorias baseada na imagem[cite: 2]
+// Categorias e Ingredientes disponíveis no cardápio
 const categories = ref([
   {
     id: 'paes',
@@ -131,18 +112,12 @@ const categories = ref([
   }
 ])
 
-// Computed property atualizada para filtrar dentro das categorias
 const filteredCategories = computed(() => {
   const term = search.value.toLowerCase().trim()
+  if (!term) return categories.value
 
-  if (!term) {
-    return categories.value
-  }
-
-  // Filtra os itens dentro de cada categoria. 
-  // Se a categoria ficar vazia após o filtro, ela não é retornada.
   return categories.value.map(category => {
-    const filteredItems = category.items.filter(ingredient => 
+    const filteredItems = category.items.filter(ingredient =>
       ingredient.name.toLowerCase().includes(term)
     )
     return { ...category, items: filteredItems }
@@ -150,21 +125,13 @@ const filteredCategories = computed(() => {
 })
 
 function onDragStart(ingredient, event) {
-  event.dataTransfer.setData(
-    'ingredient',
-    JSON.stringify(ingredient)
-  )
-
+  event.dataTransfer.setData('ingredient', JSON.stringify(ingredient))
   event.dataTransfer.effectAllowed = 'copy'
 }
 </script>
 
 <style scoped>
-/* Main Container */
 .ingredient-sidebar {
-  width: 100%;
-  max-width: 350px;
-  height: 100vh;
   box-sizing: border-box;
   padding: 20px;
   background: #101416;
@@ -173,7 +140,6 @@ function onDragStart(ingredient, event) {
   font-family: sans-serif;
 }
 
-/* Header[cite: 2] */
 .sidebar-header {
   margin-bottom: 18px;
 }
@@ -182,7 +148,7 @@ function onDragStart(ingredient, event) {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #f38b41; /* Cor laranja baseada na imagem */
+  color: #f38b41;
 }
 
 .title-row .icon {
@@ -204,7 +170,6 @@ function onDragStart(ingredient, event) {
   font-size: 12px;
 }
 
-/* Search[cite: 2] */
 .search {
   position: relative;
   margin-bottom: 24px;
@@ -229,19 +194,9 @@ function onDragStart(ingredient, event) {
 }
 
 .search input:focus {
-  border-color: #f38b41; /* Atualizado para o laranja do tema */
+  border-color: #f38b41;
 }
 
-.search-icon {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #aaa;
-  font-size: 20px;
-}
-
-/* Categorias */
 .categories-list {
   display: flex;
   flex-direction: column;
@@ -274,14 +229,12 @@ function onDragStart(ingredient, event) {
   letter-spacing: 0.5px;
 }
 
-/* Grid[cite: 2] */
 .ingredient-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 10px;
 }
 
-/* Card[cite: 2] */
 .ingredient-card {
   min-width: 0;
   background: #151a1d;
@@ -303,7 +256,6 @@ function onDragStart(ingredient, event) {
   transform: scale(0.98);
 }
 
-/* Image[cite: 2] */
 .ingredient-image {
   width: 100%;
   aspect-ratio: 1.25;
@@ -318,7 +270,6 @@ function onDragStart(ingredient, event) {
   object-fit: cover;
 }
 
-/* Name[cite: 2] */
 .ingredient-name {
   min-height: 42px;
   display: flex;
@@ -333,7 +284,6 @@ function onDragStart(ingredient, event) {
   line-height: 1.2;
 }
 
-/* Scrollbar[cite: 2] */
 .ingredient-sidebar::-webkit-scrollbar {
   width: 6px;
 }

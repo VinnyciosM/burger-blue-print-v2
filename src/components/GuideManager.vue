@@ -1,48 +1,47 @@
 <template>
   <aside class="guide-settings-sidebar">
-    
-    <!-- DIV 1: GERENCIAMENTO DE PÁGINAS -->
+
     <div class="top-content">
       <section class="sidebar-section pages-section">
         <header class="section-header">
           <h3 class="section-title">📄 PÁGINAS DO GUIA</h3>
-          <p class="section-subtitle">Selecione o lanche para editar</p>
+          <p class="section-subtitle">Arraste para ordenar ou clique para editar</p>
         </header>
 
-        <!-- Lista de Páginas -->
         <div class="pages-list">
-          <div 
-            v-for="(page, index) in pages" 
-            :key="page.id" 
-            class="page-item"
-            :class="{ 'active-page': page.id === activePageId }"
-            @click="setActivePage(page.id)"
-          >
-            <div class="page-main-row">
-              <div class="info-area">
-                <span class="index">#{{ index + 1 }}</span>
-                <span class="name">{{ page.name }}</span>
+          <!-- Draggable agora gerencia a ordem perfeitamente -->
+          <VueDraggable v-model="localSnacks" handle=".drag-handle" ghost-class="ghost-page" :animation="200">
+            <div v-for="(snack, index) in localSnacks" :key="snack.id" class="page-item"
+              :class="{ 'active-page': snack.id === activeSnackId }" @click="$emit('select-snack', snack.id)">
+              <div class="page-main-row">
+                <!-- Ícone de Alça (Drag Handle) -->
+                <div class="drag-handle" title="Segure para arrastar">⋮⋮</div>
+
+                <div class="info-area">
+                  <!-- Cálculo dinâmico do número -->
+                  <span class="index">#{{ String(index + 1).padStart(2, '0') }}</span>
+                  <span class="name">{{ snack.name }}</span>
+                </div>
+
+                <button @click.stop="$emit('delete-snack', index)" class="btn-delete-full" title="Excluir Lanche">
+                  ✕
+                </button>
               </div>
-              
-              <button @click.stop="deletePage(index)" class="btn-delete-full" title="Excluir Lanche">
-                ✕
-              </button>
             </div>
-          </div>
+          </VueDraggable>
         </div>
 
-        <button class="add-snack-btn">
+        <button @click="$emit('add-snack')" class="add-snack-btn">
           + Adicionar Lanche
         </button>
       </section>
     </div>
 
-    <!-- DIV 2: RESUMO E MODO DE IMPRESSÃO -->
     <div class="bottom-content">
       <div class="summary-card">
         <div class="summary-row">
           <span class="summary-label">Total de Lanches</span>
-          <span class="summary-value">{{ pages.length }}</span>
+          <span class="summary-value">{{ localSnacks.length }}</span>
         </div>
       </div>
 
@@ -53,7 +52,7 @@
         </header>
 
         <div class="print-actions">
-          <button @click="openPrintMode" class="primary-btn">
+          <button @click="$emit('open-print-mode')" class="primary-btn">
             Visualizar Impressão
             <span class="arrow-icon">→</span>
           </button>
@@ -65,36 +64,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { VueDraggable } from 'vue-draggable-plus'
 
-const emit = defineEmits(['open-print-mode']) //[cite: 5]
+const props = defineProps({
+  snacks: { type: Array, required: true },
+  activeSnackId: { type: Number, required: false }
+})
 
-const activePageId = ref(1)
+const emit = defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'delete-snack'])
 
-const pages = ref([
-  { id: 1, number: '01', name: 'Alasca Burguer' },
-  { id: 2, number: '02', name: 'Cheddar Bacon' },
-  { id: 3, number: '03', name: 'Smash Duplo' },
-  { id: 4, number: '04', name: 'Chicken Crispy' },
-  { id: 5, number: '05', name: 'BBQ Burguer' },
-  { id: 6, number: '06', name: 'Veggie Burguer' }
-])
-
-const setActivePage = (id) => {
-  activePageId.value = id
-}
-
-const deletePage = (index) => {
-  pages.value.splice(index, 1)
-}
-
-const openPrintMode = () => {
-  emit('open-print-mode') //[cite: 5]
-}
+// Interceptador para o VueDraggable atualizar o array do Pai
+const localSnacks = computed({
+  get: () => props.snacks,
+  set: (val) => emit('update:snacks', val)
+})
 </script>
 
 <style scoped>
-/* Reset de Botão Padrão */
 button {
   background-color: transparent;
 }
@@ -163,17 +150,22 @@ button {
   padding-right: 4px;
 }
 
-.pages-list::-webkit-scrollbar { width: 6px; }
-.pages-list::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+.pages-list::-webkit-scrollbar {
+  width: 6px;
+}
 
+.pages-list::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+/* Adicionado overflow:visible no container para o drag handle não bugar */
 .page-item {
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   background-color: #1e1e1e;
   border: 1px solid #2a2a2a;
-  cursor: pointer;
-  overflow: hidden;
   transition: border-color 0.2s;
 }
 
@@ -189,13 +181,34 @@ button {
   color: #f38b41;
 }
 
+.ghost-page {
+  opacity: 0.5;
+  background-color: #111;
+  border: 1px dashed #666;
+}
+
 .page-main-row {
   display: flex;
   align-items: center;
-  padding: 0 0 0 12px;
   height: 48px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Novo Estilo para a Alça de Arrastar */
+.drag-handle {
+  color: #555;
+  font-size: 1.2rem;
+  cursor: grab;
+  padding: 0 8px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  color: #fff;
 }
 
 .info-area {
@@ -233,6 +246,8 @@ button {
   transition: all 0.2s;
   border-left: 1px solid #2a2a2a;
   background-color: #161616;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .btn-delete-full:hover {

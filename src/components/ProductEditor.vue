@@ -1,30 +1,27 @@
 <template>
     <div class="product-editor">
 
-        <!-- COLUNA ESQUERDA: Edição e Ingredientes -->
         <div class="editor-sidebar">
 
             <!-- Lanche Atual -->
             <section class="section-block">
-                <h3 class="section-title">LANCHE ATUAL</h3>
+                <h3 class="section-title">LANCHE ATUAL (Nome sem número)</h3>
                 <div class="input-group">
-                    <input type="text" v-model="snackName" class="dark-input" />
-                    <button class="icon-btn" aria-label="Editar">
-                        ✎
-                    </button>
+                    <!-- O Input altera SOMENTE o nome real do lanche -->
+                    <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer" />
+                    <button class="icon-btn" aria-label="Editar">✎</button>
                 </div>
             </section>
 
-            <!-- Ingredientes do Lanche -->
+            <!-- Ingredientes -->
             <section class="section-block flex-grow">
                 <h3 class="section-title">INGREDIENTES DO LANCHE</h3>
                 <p class="section-subtitle">Reordene arrastando os itens</p>
 
                 <div class="ingredients-list">
-                    <VueDraggable v-model="ingredients" ghost-class="ghost-item" :animation="200">
-                        <div v-for="(item, index) in ingredients" :key="item.id" class="ingredient-item">
+                    <VueDraggable v-model="snack.ingredients" ghost-class="ghost-item" :animation="200">
+                        <div v-for="(item, index) in snack.ingredients" :key="item.id" class="ingredient-item">
 
-                            <!-- LINHA PRINCIPAL -->
                             <div class="ingredient-main-row">
                                 <div class="info-area">
                                     <span class="index">#{{ index + 1 }}</span>
@@ -33,66 +30,72 @@
 
                                 <img v-if="item.image" :src="item.image" :alt="item.name" class="ingredient-img" />
 
-                                <!-- Adicionado um :class dinâmico para quando estiver aberto -->
                                 <button @click.stop="toggleObs(item)" class="btn-observation"
                                     :class="{ 'is-open': openObsId === item.id }" title="Adicionar Observação">
                                     <ObservationIcon />
                                 </button>
 
-                                <!-- Botão deletar (só aparece se estiver fechado) -->
                                 <button v-if="openObsId !== item.id" @click.stop="removeIngredient(index)"
-                                    class="btn-delete-full" aria-label="Remover">
-                                    ✕
-                                </button>
+                                    class="btn-delete-full" aria-label="Remover">✕</button>
                             </div>
 
-                            <!-- CAIXA DE OBSERVAÇÃO -->
+                            <!-- Observação -->
                             <div v-if="openObsId === item.id" class="ingredient-obs-row">
-
                                 <div class="obs-header">
                                     <span class="obs-label">OBSERVAÇÃO</span>
-                                    <!-- REMOVIDO o botão "X" daqui! Deixamos só o rótulo -->
                                 </div>
-
                                 <textarea v-model="item.obs" class="obs-textarea"
                                     placeholder="Digite a observação para este item..."></textarea>
-
-                                <button @click.stop="closeObs" class="btn-close-obs">
-                                    ✓ Concluído
-                                </button>
+                                <button @click.stop="closeObs" class="btn-close-obs">✓ Concluído</button>
                             </div>
 
                         </div>
                     </VueDraggable>
+
+                    <div v-if="snack.ingredients.length === 0" class="empty-list-msg">
+                        Nenhum ingrediente adicionado.
+                    </div>
+
                 </div>
             </section>
         </div>
 
-        <!-- COLUNA DIREITA: Canvas -->
+        <!-- CANVAS -->
         <div class="editor-main">
             <div class="canvas-area light-canvas">
 
-                <!-- Elementos Fixados no Topo -->
-                <span class="item-number">1</span>
+                <!-- Elementos Fixos do Topo -->
+                <span class="item-number">{{ snackIndex + 1 }}</span>
 
-                <h2 class="canvas-title">{{ snackName }}</h2>
+                <!-- Título do Canvas gerado DINAMICAMENTE (01 - Nome) -->
+                <h2 class="canvas-title">
+                   {{ snack.name }}
+                </h2>
 
-                <!-- Divisória fixa -->
                 <div class="canvas-divider"></div>
 
-                <!-- Texto Centralizado -->
-                <span class="canvas-empty-text">VAZIO</span>
+                <!-- Se não houver ingredientes, mostra VAZIO -->
+                <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
+
+                <!-- Lista Espelhada -->
+                <div v-else class="canvas-ingredients-list">
+                    <div v-for="(item, index) in snack.ingredients" :key="item.id" class="canvas-ingredient-item">
+                        <img v-if="item.image" :src="item.image" class="canvas-item-img" />
+                        <div class="canvas-item-texts">
+                            <span class="canvas-item-name">{{ index + 1 }}. {{ item.name }}</span>
+                            <span v-if="item.obs" class="canvas-item-obs">{{ item.obs }}</span>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
-            <!-- Controles de Paginação -->
             <div class="pagination-controls">
                 <button class="page-btn">‹</button>
-                <span class="page-indicator">1 / 12</span>
+                <span class="page-indicator">{{ snackIndex + 1 }} / 12</span>
                 <button class="page-btn">›</button>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -101,53 +104,35 @@ import { ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ObservationIcon from './icons/ObservationIcon.vue'
 
-// Estado principal
-const snackName = ref('01 - Alasca Burguer')
+// Agora recebemos não só o lanche, mas também a posição dele (index)
+const props = defineProps({
+    snack: { type: Object, required: true },
+    snackIndex: { type: Number, required: true }
+})
 
 const openObsId = ref(null)
 
-// Alterna a abertura/fechamento da observação
 const toggleObs = (item) => {
     if (openObsId.value === item.id) {
-        // Se clicar no botão de um item que já está aberto, ele fecha
         openObsId.value = null
     } else {
-        // Caso contrário, abre a caixa para este item (o que fecha os outros automaticamente)
         openObsId.value = item.id
-        // Zera o texto sempre que abrir, conforme você pediu antes
-        item.obs = ''
+        if (!item.obs) item.obs = ''
     }
 }
 
-// Função simples apenas para fechar a caixa
-const closeObs = () => {
-    openObsId.value = null
-}
-
-const ingredients = ref([
-    { id: 1, name: 'Pão Brioche', obs: '' },
-    { id: 2, name: 'Molho Alasca', obs: 'Obs: Molho especial da casa' },
-    { id: 3, name: 'Bacon', obs: '' },
-    { id: 4, name: 'Queijo Cheddar', obs: '' },
-    { id: 5, name: 'Carne 180g', obs: 'Obs: Ponto da carne: ao ponto' },
-    { id: 6, name: 'Alface', obs: '' },
-    { id: 7, name: 'Tomate', obs: '' },
-    { id: 8, name: 'Cebola Roxa', obs: '' },
-    { id: 9, name: 'Picles', obs: '' }
-])
+const closeObs = () => { openObsId.value = null }
 
 const removeIngredient = (index) => {
-    ingredients.value.splice(index, 1)
+    props.snack.ingredients.splice(index, 1)
 }
 </script>
 
 <style scoped>
-/* Reset de Botão Padrão */
 button {
     background-color: transparent;
 }
 
-/* Container Principal */
 .product-editor {
     display: flex;
     gap: 24px;
@@ -156,10 +141,8 @@ button {
     padding: 20px;
     box-sizing: border-box;
     font-family: sans-serif;
-    width: 1100px;
 }
 
-/* Coluna Esquerda */
 .editor-sidebar {
     display: flex;
     flex-direction: column;
@@ -195,7 +178,6 @@ button {
     margin: 0 0 8px 0;
 }
 
-/* Input "Lanche Atual" */
 .input-group {
     display: flex;
     align-items: center;
@@ -225,7 +207,6 @@ button {
     color: #fff;
 }
 
-/* Lista de Ingredientes (Scroll) */
 .ingredients-list {
     display: flex;
     flex-direction: column;
@@ -243,7 +224,14 @@ button {
     border-radius: 4px;
 }
 
-/* Item da Lista (Container) */
+.empty-list-msg {
+    color: #555;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 20px 0;
+    font-style: italic;
+}
+
 .ingredient-item {
     border-radius: 8px;
     margin-bottom: 5px;
@@ -265,7 +253,6 @@ button {
     border: 1px dashed #666;
 }
 
-/* Linha Principal do Item */
 .ingredient-main-row {
     display: flex;
     align-items: center;
@@ -275,7 +262,6 @@ button {
     box-sizing: border-box;
 }
 
-/* Info do Ingrediente (# e Nome) */
 .info-area {
     flex: 1;
     display: flex;
@@ -297,17 +283,14 @@ button {
     text-transform: uppercase;
 }
 
-/* Imagem do Ingrediente */
 .ingredient-img {
     width: 32px;
     height: 32px;
     object-fit: contain;
     margin-right: 10px;
     mix-blend-mode: multiply;
-    /* Funciona bem para fundos brancos, pode remover se suas imagens forem PNG com fundo transparente */
 }
 
-/* Botão de Observação */
 .btn-observation {
     margin-right: 6px;
     color: #cc3333;
@@ -326,7 +309,13 @@ button {
     border-color: #cc3333;
 }
 
-/* Botão de Fechar/Remover Item */
+.btn-observation.is-open {
+    background-color: #cc3333;
+    color: #ffffff;
+    border-color: #cc3333;
+    margin-right: 12px;
+}
+
 .btn-delete-full {
     width: 45px;
     height: 100%;
@@ -347,7 +336,6 @@ button {
     background-color: #111;
 }
 
-/* --- ESTILOS DA CAIXA DE OBSERVAÇÃO --- */
 .ingredient-obs-row {
     display: flex;
     flex-direction: column;
@@ -356,6 +344,21 @@ button {
     background-color: #161616;
     border-top: 1px solid #2a2a2a;
     cursor: default;
+}
+
+.obs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+}
+
+.obs-label {
+    font-size: 0.65rem;
+    color: #888;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .obs-textarea {
@@ -396,7 +399,6 @@ button {
     color: #fff;
 }
 
-/* --- COLUNA DIREITA - CANVAS --- */
 .editor-main {
     flex-grow: 1;
     display: flex;
@@ -416,8 +418,11 @@ button {
     background-color: #fffdfc;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding-top: 90px;
+    box-sizing: border-box;
 }
 
 .item-number {
@@ -451,7 +456,63 @@ button {
     background-color: #f38b41;
 }
 
+.canvas-ingredients-list {
+    width: 85%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.canvas-ingredients-list::-webkit-scrollbar {
+    display: none;
+}
+
+.canvas-ingredient-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px dashed #e0e0e0;
+    padding-bottom: 8px;
+}
+
+.canvas-ingredient-item:last-child {
+    border-bottom: none;
+}
+
+.canvas-item-img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    flex-shrink: 0;
+}
+
+.canvas-item-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.canvas-item-name {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #1a1a24;
+    text-transform: uppercase;
+}
+
+.canvas-item-obs {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #cc3333;
+    font-style: italic;
+}
+
 .canvas-empty-text {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
     color: #d8d8dd;
     font-size: 1rem;
     font-weight: 800;
@@ -459,7 +520,6 @@ button {
     letter-spacing: 1px;
 }
 
-/* Paginação */
 .pagination-controls {
     display: flex;
     align-items: center;
@@ -487,67 +547,5 @@ button {
 .page-indicator {
     font-size: 0.85rem;
     color: #ccc;
-}
-
-/* Cabeçalho da Observação e Botão X */
-.obs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
-}
-
-.obs-label {
-    font-size: 0.65rem;
-    color: #888;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.btn-close-x {
-    background: transparent;
-    border: none;
-    color: #888;
-    font-size: 1.1rem;
-    cursor: pointer;
-    padding: 0 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
-}
-
-.btn-close-x:hover {
-    color: #cc3333;
-}
-
-/* ... estilos existentes do botão ... */
-.btn-observation {
-    margin-right: 6px;
-    color: #cc3333;
-    border: 1px solid #333;
-    border-radius: 6px;
-    padding: 6px 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-observation:hover {
-    background-color: #333;
-    border-color: #cc3333;
-}
-
-/* NOVO: Estado quando a observação está aberta */
-.btn-observation.is-open {
-    background-color: #cc3333;
-    color: #ffffff;
-    /* Ícone fica branco */
-    border-color: #cc3333;
-    /* Adiciona uma margem simulando o espaço do botão de lixeira que sumiu */
-    margin-right: 12px;
 }
 </style>

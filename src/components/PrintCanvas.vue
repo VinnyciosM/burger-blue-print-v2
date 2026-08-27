@@ -1,10 +1,5 @@
 <template>
   <div class="print-canvas-wrapper">
-    
-    <!-- Indicador superior esquerdo -->
-    <div class="top-indicator">
-      Página 1 de 3
-    </div>
 
     <!-- Controles de Zoom Flutuantes -->
     <div class="zoom-controls">
@@ -13,97 +8,154 @@
       <button class="zoom-btn">-</button>
     </div>
 
-    <!-- Área da Folha A4 (Simulação) -->
-    <div class="paper-sheet landscape">
-      
-      <!-- Linhas de corte (Tracejado interno) -->
-      <div class="cut-lines-grid">
-        <!-- Ícones de Tesoura simulados nos cruzamentos (Opcional, usando texto para o mockup) -->
-        <div class="scissor top">✂</div>
-        <div class="scissor bottom">✂</div>
-        <div class="scissor left">✂</div>
-        <div class="scissor right">✂</div>
-        <div class="scissor center">✂</div>
+    <!-- Container de Rolagem com TODAS as Páginas -->
+    <div class="pages-scroll-container">
 
-        <!-- Placeholder dos 4 lanches (Mockup visual) -->
-        <div v-for="n in 4" :key="n" class="snack-preview-card">
-          <div class="card-header">
-            <span class="snack-number">0{{ n }}</span>
-            <h4 class="snack-name">NOME DO LANCHE</h4>
-            <div class="brand-badge">keeta</div>
-          </div>
-          
-          <div class="card-body">
-            <div class="image-placeholder">🍔</div>
-            <div class="ingredients-placeholder">
-              <span v-for="i in 6" :key="i">Ingrediente {{ i }}</span>
+      <!-- Renderiza uma folha para cada página calculada -->
+      <div v-for="(pageSnacks, pageIndex) in pages" :key="pageIndex" class="paper-sheet" :class="settings.orientation"
+        :style="dynamicStyles">
+
+        <!-- Grid de Corte -->
+        <div class="cut-lines-grid" :class="{ 'show-cutlines': settings.showCutLines }">
+
+          <!-- Renderiza APENAS os lanches que pertencem a esta folha específica -->
+          <div v-for="(snack, localIndex) in pageSnacks" :key="snack.id" class="snack-preview-card">
+
+            <div class="card-header">
+              <!-- Calcula o número geral do lanche para não zerar a cada página -->
+              <span class="snack-number">{{ String(getGlobalIndex(pageIndex, localIndex)).padStart(2, '0') }}</span>
+              <h4 class="snack-name">{{ snack.name }}</h4>
+              <div class="brand-badge">keeta</div>
             </div>
-          </div>
-          
-          <div class="card-footer">
-            <span class="price">R$ 28,90</span>
+
+            <div class="card-body">
+              <div class="ingredients-list-print">
+                <div v-for="item in snack.ingredients" :key="item.id" class="ingredient-print-item">
+                  <img v-if="item.image" :src="item.image" class="print-item-img" />
+                  <div class="print-item-text">
+                    <span class="print-item-name">{{ item.name }}</span>
+                    <span v-if="item.obs" class="print-item-obs">{{ item.obs }}</span>
+                  </div>
+                </div>
+                <div v-if="snack.ingredients.length === 0" class="empty-snack">
+                  Sem ingredientes.
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
 
-    </div>
-
-    <!-- Paginação e Aviso Inferior -->
-    <div class="bottom-controls">
-      <div class="pagination">
-        <button class="page-btn">‹</button>
-        <span class="page-indicator">1 / 3</span>
-        <button class="page-btn">›</button>
+      <!-- Aviso Inferior (Aparece no final do scroll) -->
+      <div class="bottom-controls">
+        <p class="disclaimer">
+          Esta é uma simulação. O resultado final pode ter pequenas variações.
+        </p>
       </div>
-      <p class="disclaimer">
-        Esta é uma simulação. O resultado final pode ter pequenas variações.
-      </p>
+
     </div>
 
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-// Aqui futuramente receberemos os dados via props do App.vue
-// const props = defineProps(['lanches', 'configuracoes'])
+const props = defineProps({
+  snacks: {
+    type: Array,
+    required: true
+  },
+  settings: {
+    type: Object,
+    required: true
+  }
+})
 
+// MÁGICA DO SCROLL: Agrupa os lanches em "Páginas" baseadas na configuração
+const pages = computed(() => {
+  if (props.settings.itemsPerPage === 'custom') {
+    return [props.snacks] // Se for personalizado, joga tudo numa folha só
+  }
+
+  const itemsPerPage = props.settings.itemsPerPage
+  const result = []
+
+  for (let i = 0; i < props.snacks.length; i += itemsPerPage) {
+    result.push(props.snacks.slice(i, i + itemsPerPage))
+  }
+
+  return result.length ? result : [[]] // Garante que pelo menos 1 folha em branco apareça
+})
+
+// Calcula o número real do lanche na sequência (01, 02, 03) ignorando a quebra de página
+const getGlobalIndex = (pageIndex, localIndex) => {
+  if (props.settings.itemsPerPage === 'custom') return localIndex + 1
+  return (pageIndex * props.settings.itemsPerPage) + localIndex + 1
+}
+
+const dynamicStyles = computed(() => {
+  let columns = props.settings.itemsPerPage === 'custom' ? props.snacks.length : props.settings.itemsPerPage
+  if (columns === 0) columns = 1
+
+  return {
+    paddingTop: `${props.settings.margins.top}mm`,
+    paddingBottom: `${props.settings.margins.bottom}mm`,
+    paddingLeft: `${props.settings.margins.left}mm`,
+    paddingRight: `${props.settings.margins.right}mm`,
+    '--grid-columns': `repeat(${columns}, 1fr)`,
+    '--grid-rows': '1fr', // Mantendo apenas 1 linha como combinamos antes
+    '--grid-gap': `${props.settings.spacing}mm`
+  }
+})
 </script>
 
 <style scoped>
-/* Container Principal (Fundo Cinza) */
 .print-canvas-wrapper {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background-color: #d8d8dd; /* Cinza claro da imagem */
-  border-radius: 8px;
+  background-color: #d8d8dd;
   flex-grow: 1;
-  padding: 40px 20px;
   overflow: hidden;
+  /* Odiamos scroll duplo, então o wrapper não tem scroll */
   font-family: sans-serif;
 }
 
-/* Indicador Topo Esquerdo */
-.top-indicator {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: #333;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+/* NOVO: Área onde as folhas vão rolar */
+.pages-scroll-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  /* Distância entre uma folha e outra */
+  padding: 60px 20px;
+  box-sizing: border-box;
 }
 
-/* Controles de Zoom */
+/* Custom Scrollbar da área de visualização */
+.pages-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pages-scroll-container::-webkit-scrollbar-thumb {
+  background: #b0b0b5;
+  border-radius: 4px;
+}
+
+.pages-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 .zoom-controls {
   position: absolute;
-  top: 60px;
+  top: 40px;
+  /* Ajustado um pouco para cima */
   left: 20px;
   background-color: #222;
   border-radius: 6px;
@@ -111,7 +163,9 @@ import { ref } from 'vue'
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  /* Garante que os botões fiquem em cima do scroll */
 }
 
 .zoom-btn {
@@ -124,7 +178,9 @@ import { ref } from 'vue'
   transition: background 0.2s;
 }
 
-.zoom-btn:hover { background-color: #444; }
+.zoom-btn:hover {
+  background-color: #444;
+}
 
 .zoom-level {
   color: #ccc;
@@ -135,54 +191,52 @@ import { ref } from 'vue'
   font-weight: bold;
 }
 
-/* Folha A4 */
+/* Folha Base */
 .paper-sheet {
   background-color: #ffffff;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   position: relative;
-  /* Proporção de A4 Paisagem (297x210) */
   width: 100%;
   max-width: 800px;
-  aspect-ratio: 1.414 / 1; 
-  padding: 20px;
   box-sizing: border-box;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  /* Impede a folha de ser esmagada */
 }
 
-/* Grid de Linhas de Corte */
+.paper-sheet.landscape {
+  aspect-ratio: 1.414 / 1;
+}
+
+.paper-sheet.portrait {
+  aspect-ratio: 1 / 1.414;
+}
+
+/* Grid Injetado Dinamicamente */
 .cut-lines-grid {
   width: 100%;
   height: 100%;
-  border: 1px dashed #ccc;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: var(--grid-columns);
+  grid-template-rows: var(--grid-rows);
+  gap: var(--grid-gap);
   position: relative;
 }
 
-/* Elementos do Grid de Corte */
-.cut-lines-grid > div.snack-preview-card {
-  border: 1px dashed #ccc; /* Bordas internas tracejadas */
+.cut-lines-grid.show-cutlines .snack-preview-card {
+  border: 1px dashed #ccc;
+}
+
+.snack-preview-card {
+  border: 1px solid transparent;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background-color: #fff;
+  overflow: hidden;
 }
 
-/* Tesourinhas (Posicionamento Absoluto) */
-.scissor {
-  position: absolute;
-  font-size: 12px;
-  color: #aaa;
-  background: #fff;
-  padding: 2px;
-}
-.scissor.top { top: -10px; left: 50%; transform: translateX(-50%); }
-.scissor.bottom { bottom: -10px; left: 50%; transform: translateX(-50%); }
-.scissor.left { left: -10px; top: 50%; transform: translateY(-50%); }
-.scissor.right { right: -10px; top: 50%; transform: translateY(-50%); }
-.scissor.center { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-
-/* Mockup do Lanche (Visual Temporário) */
 .card-header {
   display: flex;
   align-items: center;
@@ -190,52 +244,94 @@ import { ref } from 'vue'
   border-bottom: 2px solid #f38b41;
   padding-bottom: 8px;
 }
-.snack-number { background: #111; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;}
-.snack-name { margin: 0; font-size: 1.1rem; color: #111; font-weight: 900; flex-grow: 1; }
-.brand-badge { background: #facc15; color: #111; font-weight: 800; font-size: 0.6rem; padding: 4px 8px; border-radius: 12px; }
+
+.snack-number {
+  background: #111;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.snack-name {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111;
+  font-weight: 900;
+  flex-grow: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-badge {
+  background: #facc15;
+  color: #111;
+  font-weight: 800;
+  font-size: 0.6rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
 
 .card-body {
   display: flex;
   flex-grow: 1;
   gap: 16px;
-  align-items: center;
+  align-items: flex-start;
+  overflow: hidden;
 }
-.image-placeholder { font-size: 4rem; flex-grow: 1; text-align: center; }
-.ingredients-placeholder { display: flex; flex-direction: column; gap: 4px; font-size: 0.65rem; color: #555; }
 
-.card-footer { font-weight: 900; font-size: 1.1rem; color: #111; }
+.ingredients-list-print {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.ingredient-print-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.print-item-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.print-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.print-item-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.print-item-obs {
+  font-size: 0.65rem;
+  color: #cc3333;
+  font-style: italic;
+}
+
+.empty-snack {
+  font-size: 0.8rem;
+  color: #888;
+  font-style: italic;
+}
 
 /* Controles Inferiores */
 .bottom-controls {
   margin-top: 24px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  justify-content: center;
+  width: 100%;
 }
-
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background-color: #222;
-  padding: 4px;
-  border-radius: 6px;
-}
-
-.page-btn {
-  background-color: transparent;
-  border: none;
-  color: #fff;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-.page-btn:hover { background-color: #444; }
-
-.page-indicator { color: #fff; font-size: 0.8rem; font-weight: 600; padding: 0 8px; }
 
 .disclaimer {
   color: #777;
