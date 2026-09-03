@@ -7,7 +7,6 @@
             <section class="section-block">
                 <h3 class="section-title">LANCHE ATUAL (Nome sem número)</h3>
                 <div class="input-group">
-                    <!-- O Input altera SOMENTE o nome real do lanche -->
                     <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer" />
                     <button class="icon-btn" aria-label="Editar">✎</button>
                 </div>
@@ -278,11 +277,14 @@ button {
 }
 
 .ingredient-img {
-    width: 32px;
-    height: 32px;
+    width: 76px;
     object-fit: contain;
     margin-right: 10px;
-    mix-blend-mode: multiply;
+    background-color: #ffffff; /* Fundo branco para proteger a imagem */
+    border-radius: 4px; /* Bordinha arredondada elegante */
+    padding: 2px;
+    box-sizing: border-box;
+    /* mix-blend-mode removido daqui! */
 }
 
 .btn-observation {

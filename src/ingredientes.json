@@ -1,0 +1,572 @@
+[
+  {
+    "id": 1,
+    "nome": "Abacaxi",
+    "categoria": "frutas",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/abacaxi-1f76b108dc3f.avif"
+  },
+  {
+    "id": 2,
+    "nome": "Alface",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/alface-6d369bc28bbf.avif"
+  },
+  {
+    "id": 3,
+    "nome": "Alface e tomate",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/alface-e-tomate-01623f86d288.avif"
+  },
+  {
+    "id": 4,
+    "nome": "Azeitona",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/azeitona-3a6138f171f6.avif"
+  },
+  {
+    "id": 5,
+    "nome": "Bacon em cubos",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/bacon-em-cubos-477a06428e95.avif"
+  },
+  {
+    "id": 6,
+    "nome": "Bacon em fatias",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/bacon-em-fatias-81db41ddbda6.avif"
+  },
+  {
+    "id": 7,
+    "nome": "Banana",
+    "categoria": "frutas",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/banana-b822908267f0.avif"
+  },
+  {
+    "id": 8,
+    "nome": "Banana fatiada",
+    "categoria": "frutas",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/banana-fatiada-11a5a7520062.avif"
+  },
+  {
+    "id": 9,
+    "nome": "Batata frita",
+    "categoria": "acompanhamentos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/batata-frita-9c4ac9a71f02.avif"
+  },
+  {
+    "id": 10,
+    "nome": "Batata palha",
+    "categoria": "acompanhamentos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/batata-palha-f4682d03d135.avif"
+  },
+  {
+    "id": 11,
+    "nome": "Berinjela empanada",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/berinjela-empanada-bc988e744d6c.avif"
+  },
+  {
+    "id": 12,
+    "nome": "Calabresa fatiada",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/calabresa-fatiada-eeb9f036fa38.avif"
+  },
+  {
+    "id": 13,
+    "nome": "Cebola branca em rodelas",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-branca-em-rodelas-92d91a5b5e17.avif"
+  },
+  {
+    "id": 14,
+    "nome": "Cebola branca picada",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-branca-picada-6eddfc9e388b.avif"
+  },
+  {
+    "id": 15,
+    "nome": "Cebola caramelizada",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-caramelizada-ded8e1188f0e.avif"
+  },
+  {
+    "id": 16,
+    "nome": "Cebola crispy",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-crispy-8090165309f7.avif"
+  },
+  {
+    "id": 17,
+    "nome": "Cebola empanada",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-empanada-3a132f0b95f2.avif"
+  },
+  {
+    "id": 18,
+    "nome": "Cebola roxa em rodelas",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-roxa-em-rodelas-00cf293862bd.avif"
+  },
+  {
+    "id": 19,
+    "nome": "Cebola roxa picada",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebola-roxa-picada-65e3295e45d6.avif"
+  },
+  {
+    "id": 20,
+    "nome": "Cebolinha",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cebolinha-3efebd52bcfb.avif"
+  },
+  {
+    "id": 21,
+    "nome": "Cheddar empanado",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cheddar-empanado-4d7e5353a97c.avif"
+  },
+  {
+    "id": 22,
+    "nome": "Cheddar fatiado duplo",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/cheddar-fatiado-duplo-7e3b382f185d.avif"
+  },
+  {
+    "id": 23,
+    "nome": "Chutney de abacaxi",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/chutney-de-abacaxi-349d0031c41d.avif"
+  },
+  {
+    "id": 24,
+    "nome": "Costela desfiada",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/costela-desfiada-797e1cebc847.avif"
+  },
+  {
+    "id": 25,
+    "nome": "Doritos",
+    "categoria": "acompanhamentos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/doritos-368b3a42a7e4.avif"
+  },
+  {
+    "id": 26,
+    "nome": "Farofa de bacon",
+    "categoria": "acompanhamentos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/farofa-de-bacon-a2474bef13ae.avif"
+  },
+  {
+    "id": 27,
+    "nome": "Cheddar fatiado",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/fatia-de-cheddar-a56303da4bab.avif"
+  },
+  {
+    "id": 28,
+    "nome": "Frango desfiado",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/frango-desfiado-0bdf66002727.avif"
+  },
+  {
+    "id": 29,
+    "nome": "Frango em cubos",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/frango-em-cubos-b39bfb646d95.avif"
+  },
+  {
+    "id": 30,
+    "nome": "Frango empanado",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/frango-empanado-796bd05e793a.avif"
+  },
+  {
+    "id": 31,
+    "nome": "Frango grelhado",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/frango-grelhado-b87513bffc0f.avif"
+  },
+  {
+    "id": 32,
+    "nome": "Geleia de bacon",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/geleia-de-bacon-38ba720ebac3.avif"
+  },
+  {
+    "id": 33,
+    "nome": "Geleia de pimenta",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/geleia-de-pimenta-8e912c8ad2db.avif"
+  },
+  {
+    "id": 34,
+    "nome": "Gorgonzola",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/gorgonzola-b061e2136c69.avif"
+  },
+  {
+    "id": 35,
+    "nome": "Hambúrguer blend",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/hamburguer-blend-0901d946ade7.avif"
+  },
+  {
+    "id": 36,
+    "nome": "Hambúrguer de linguiça",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/hamburguer-de-linguica-dab0225a2ecc.avif"
+  },
+  {
+    "id": 37,
+    "nome": "Hambúrguer smash",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/hamburguer-smash-bfd638055642.avif"
+  },
+  {
+    "id": 38,
+    "nome": "Hambúrguer vegano",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/hamburguer-vegano-d682ffce6e52.avif"
+  },
+  {
+    "id": 39,
+    "nome": "Linguiça",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/linguica-d3e9b209689a.avif"
+  },
+  {
+    "id": 40,
+    "nome": "Maionese de bacon",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/maionese-de-bacon-d70137c04646.avif"
+  },
+  {
+    "id": 41,
+    "nome": "Mel",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/mel-15a27151db05.avif"
+  },
+  {
+    "id": 42,
+    "nome": "Milho",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/milho-bb39650ab610.avif"
+  },
+  {
+    "id": 43,
+    "nome": "Molho barbecue",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-barbecue-3397f4aa88ba.avif"
+  },
+  {
+    "id": 44,
+    "nome": "Molho catchup",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-catchup-9c014281badc.avif"
+  },
+  {
+    "id": 45,
+    "nome": "Molho cheddar",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-cheddar-da5f237fe914.avif"
+  },
+  {
+    "id": 46,
+    "nome": "Molho da casa",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-da-casa-4992c039489a.avif"
+  },
+  {
+    "id": 47,
+    "nome": "Molho geleia de pimenta",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-geleia-de-pimenta-887d52d9486d.avif"
+  },
+  {
+    "id": 48,
+    "nome": "Molho maionese",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-maionese-8b62b70374c1.avif"
+  },
+  {
+    "id": 49,
+    "nome": "Molho maionese de alho",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-maionese-de-alho-9ae22c32d0dd.avif"
+  },
+  {
+    "id": 50,
+    "nome": "Molho maionese de bacon",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-maionese-de-bacon-c00f8202c18d.avif"
+  },
+  {
+    "id": 51,
+    "nome": "Molho de mel",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-mel-0a812db7aa2f.avif"
+  },
+  {
+    "id": 52,
+    "nome": "Molho mostarda",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-mostarda-1721ea9f56c2.avif"
+  },
+  {
+    "id": 53,
+    "nome": "Molho verde",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/molho-verde-b436802c5ee2.avif"
+  },
+  {
+    "id": 54,
+    "nome": "Mortadela",
+    "categoria": "frios",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/mortadela-ebbcfe3745a0.avif"
+  },
+  {
+    "id": 55,
+    "nome": "Mussarela",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/mussarela-cd366d5b88c6.avif"
+  },
+  {
+    "id": 56,
+    "nome": "Ovo",
+    "categoria": "outros",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/ovo-b86a2a8667df.avif"
+  },
+  {
+    "id": 57,
+    "nome": "Pão australiano base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-australiano-base-a7e10aaf1efc.avif"
+  },
+  {
+    "id": 58,
+    "nome": "Pão australiano topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-australiano-topo-e0a9ce3a05d1.avif"
+  },
+  {
+    "id": 59,
+    "nome": "Pão brioche base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-base-71a3a53e43a8.avif"
+  },
+  {
+    "id": 60,
+    "nome": "Pão brioche gergelim mesclado baixo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-gergelim-mesclado-baixo-82a2cea5a19b.avif"
+  },
+  {
+    "id": 61,
+    "nome": "Pão brioche gergelim mesclado topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-gergelim-mesclado-topo-d09dda93d2f0.avif"
+  },
+  {
+    "id": 62,
+    "nome": "Pão brioche preto base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-preto-base-7ee37dfa0107.avif"
+  },
+  {
+    "id": 63,
+    "nome": "Pão brioche preto topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-preto-topo-44bd94e00d1f.avif"
+  },
+  {
+    "id": 64,
+    "nome": "Pão brioche pretzel base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-pretzel-base-e3b8cf9fc8f1.avif"
+  },
+  {
+    "id": 65,
+    "nome": "Pão brioche pretzel topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-pretzel-topo-f4dfb44a55d5.avif"
+  },
+  {
+    "id": 66,
+    "nome": "Pão brioche topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-topo-570518af6168.avif"
+  },
+  {
+    "id": 67,
+    "nome": "Pão brioche vermelho base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-vermelho-base-15aa7f965861.avif"
+  },
+  {
+    "id": 68,
+    "nome": "Pão brioche vermelho topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-brioche-vermelho-topo-484ae606be15.avif"
+  },
+  {
+    "id": 69,
+    "nome": "Pão ciabatta base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-ciabatta-base-f5481c05eacb.avif"
+  },
+  {
+    "id": 70,
+    "nome": "Pão ciabatta topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-ciabatta-topo-7f61c895da06.avif"
+  },
+  {
+    "id": 71,
+    "nome": "Pão com gergelim base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/p%C3%A3o-com-gergelim-base-d700ec1c0ae1.avif"
+  },
+  {
+    "id": 72,
+    "nome": "Pão com gergelim meio",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/p%C3%A3o-com-gergelim-meio-bcafd9e2037b.avif"
+  },
+  {
+    "id": 73,
+    "nome": "Pão com gergelim topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/p%C3%A3o-com-gergelim-topo-04d3a6c64898.avif"
+  },
+  {
+    "id": 74,
+    "nome": "Pão francês base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-frances-base-27762ff7e5eb.avif"
+  },
+  {
+    "id": 75,
+    "nome": "Pão francês topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-frances-topo-6ae85ae7efc6.avif"
+  },
+  {
+    "id": 76,
+    "nome": "Pão roseta base",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-roseta-base-414f4554e162.avif"
+  },
+  {
+    "id": 77,
+    "nome": "Pão roseta topo",
+    "categoria": "paes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pao-roseta-topo-fdd67e8d4140.avif"
+  },
+  {
+    "id": 78,
+    "nome": "Pepperoni",
+    "categoria": "carnes",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/Peperoni-7a1bc01cf201.avif"
+  },
+  {
+    "id": 79,
+    "nome": "Picles",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/picles-5dfb1bea3558.avif"
+  },
+  {
+    "id": 80,
+    "nome": "Pimenta jalapeño",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pimenta-jalapeno-a25eb8dbffce.avif"
+  },
+  {
+    "id": 81,
+    "nome": "Pimentão amarelo",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pimentao-amarelo-9b03a6d86323.avif"
+  },
+  {
+    "id": 82,
+    "nome": "Pimentão verde",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pimentao-verde-7e4dad08063f.avif"
+  },
+  {
+    "id": 83,
+    "nome": "Pimentão vermelho",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/pimentao-vermelho-4ae86b75686c.avif"
+  },
+  {
+    "id": 84,
+    "nome": "Presunto",
+    "categoria": "frios",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/presunto-6a8d363438da.avif"
+  },
+  {
+    "id": 85,
+    "nome": "Queijo coalho",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/queijo-coalho-bc3b1af337ea.avif"
+  },
+  {
+    "id": 86,
+    "nome": "Queijo empanado",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/queijo-empanado-46eec5721826.avif"
+  },
+  {
+    "id": 87,
+    "nome": "Queijo provolone",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/queijo-provolone-fee2d67832ce.avif"
+  },
+  {
+    "id": 88,
+    "nome": "Rúcula",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/rucula-cedd204764f5.avif"
+  },
+  {
+    "id": 89,
+    "nome": "Salada de repolho",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/salada-de-repolho-214edbdc9b42.avif"
+  },
+  {
+    "id": 90,
+    "nome": "Salsinha",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/salsinha-8a5907392c1e.avif"
+  },
+  {
+    "id": 91,
+    "nome": "Stick de mussarela",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/stick-de-mussarela-e23789694887.avif"
+  },
+  {
+    "id": 92,
+    "nome": "Tomate",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/tomate-0f9eb5bc6d1f.avif"
+  },
+  {
+    "id": 93,
+    "nome": "Tomate seco",
+    "categoria": "vegetais",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/tomate-seco-98f88746b524.avif"
+  },
+  {
+    "id": 94,
+    "nome": "Vinagrete",
+    "categoria": "molhos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/vinagrete-8ed4b6c6f133.avif"
+  },
+  {
+    "id": 95,
+    "nome": "Catupiry",
+    "categoria": "queijos",
+    "url": "https://pub-c48cedaecf974c7385f5730276863f5f.r2.dev/catupiry-3954c8f14ed9.avif"
+  }
+]

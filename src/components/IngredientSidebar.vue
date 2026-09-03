@@ -17,10 +17,14 @@
       <input v-model="search" type="text" placeholder="Buscar ingrediente..." />
     </div>
 
-    <!-- Lista de Categorias -->
-    <div class="categories-list">
-      <div v-for="category in filteredCategories" :key="category.id" class="category-block">
+    <!-- Estado de Carregamento -->
+    <div v-if="isLoading" class="loading-state">
+      <p>Carregando ingredientes...</p>
+    </div>
 
+    <!-- Lista de Categorias Dinâmica -->
+    <div v-else class="categories-list">
+      <div v-for="category in filteredCategories" :key="category.id" class="category-block">
         <div class="category-header">
           <span class="category-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -42,76 +46,59 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
+// Importa o arquivo JSON diretamente (o Vite faz o parse automático!)
+import flatData from '../ingredientes.json'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
 
-// Categorias e Ingredientes disponíveis no cardápio
-const categories = ref([
-  {
-    id: 'paes',
-    name: 'PÃES',
-    items: [
-      { id: 1, name: 'Pão Brioche', image: 'https://placehold.co/300x220' },
-      { id: 2, name: 'Pão com Gergelim', image: 'https://placehold.co/300x220' },
-      { id: 3, name: 'Pão Australiano', image: 'https://placehold.co/300x220' }
-    ]
-  },
-  {
-    id: 'carnes',
-    name: 'CARNES',
-    items: [
-      { id: 4, name: 'Carne 180g', image: 'https://placehold.co/300x220' },
-      { id: 5, name: 'Carne 150g', image: 'https://placehold.co/300x220' },
-      { id: 6, name: 'Frango Crispy', image: 'https://placehold.co/300x220' }
-    ]
-  },
-  {
-    id: 'queijos',
-    name: 'QUEIJOS',
-    items: [
-      { id: 7, name: 'Queijo Cheddar', image: 'https://placehold.co/300x220' },
-      { id: 8, name: 'Queijo Mussarela', image: 'https://placehold.co/300x220' },
-      { id: 9, name: 'Queijo Provolone', image: 'https://placehold.co/300x220' }
-    ]
-  },
-  {
-    id: 'acompanhamentos',
-    name: 'ACOMPANHAMENTOS',
-    items: [
-      { id: 10, name: 'Bacon', image: 'https://placehold.co/300x220' },
-      { id: 11, name: 'Alface', image: 'https://placehold.co/300x220' },
-      { id: 12, name: 'Tomate', image: 'https://placehold.co/300x220' }
-    ]
-  },
-  {
-    id: 'molhos',
-    name: 'MOLHOS',
-    items: [
-      { id: 13, name: 'Molho Alasca', image: 'https://placehold.co/300x220' },
-      { id: 14, name: 'Molho Barbecue', image: 'https://placehold.co/300x220' },
-      { id: 15, name: 'Molho Especial', image: 'https://placehold.co/300x220' }
-    ]
-  },
-  {
-    id: 'outros',
-    name: 'OUTROS',
-    items: [
-      { id: 16, name: 'Picles', image: 'https://placehold.co/300x220' },
-      { id: 17, name: 'Cebola Roxa', image: 'https://placehold.co/300x220' },
-      { id: 18, name: 'Ovo', image: 'https://placehold.co/300x220' }
-    ]
-  }
-])
+// Estados Reativos
+const categories = ref([])
+const isLoading = ref(true)
 
+onMounted(() => {
+  try {
+    // Como importamos direto, não precisamos de fetch ou await.
+    // O flatData já é o array de ingredientes prontinho.
+
+    // Agrupa a lista plana em Categorias
+    const groupedData = flatData.reduce((acc, curr) => {
+      let category = acc.find(c => c.id === curr.categoria)
+
+      if (!category) {
+        category = {
+          id: curr.categoria,
+          name: curr.categoria.toUpperCase(),
+          items: []
+        }
+        acc.push(category)
+      }
+
+      category.items.push({
+        id: curr.id,
+        name: curr.nome,
+        image: curr.url
+      })
+
+      return acc
+    }, [])
+
+    categories.value = groupedData
+  } catch (error) {
+    console.error('Erro ao processar ingredientes:', error)
+  } finally {
+    isLoading.value = false
+  }
+})
+
+// Filtro de busca
 const filteredCategories = computed(() => {
   const term = search.value.toLowerCase().trim()
   if (!term) return categories.value
@@ -131,6 +118,14 @@ function onDragStart(ingredient, event) {
 </script>
 
 <style scoped>
+.loading-state {
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .ingredient-sidebar {
   box-sizing: border-box;
   padding: 20px;
@@ -230,13 +225,17 @@ function onDragStart(ingredient, event) {
 }
 
 .ingredient-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .ingredient-card {
-  min-width: 0;
+  width: 170px;
+  height: 100px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
   background: #151a1d;
   border: 1px solid #2b3033;
   border-radius: 6px;
@@ -258,30 +257,38 @@ function onDragStart(ingredient, event) {
 
 .ingredient-image {
   width: 100%;
-  aspect-ratio: 1.25;
-  background: #111518;
+  flex-grow: 1; 
+  background: #ffffff; /* Fundo branco para mesclar com a imagem sem deixar faixas */
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ingredient-image img {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain; /* Garante que não corte a imagem */
+  padding: 0; /* Removido para encostar na borda */
 }
 
 .ingredient-name {
-  min-height: 42px;
+  height: 32px; 
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 7px;
+  padding: 4px 8px;
   box-sizing: border-box;
   color: #e5e5e5;
   font-size: 0.7rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
 }
 
 .ingredient-sidebar::-webkit-scrollbar {
