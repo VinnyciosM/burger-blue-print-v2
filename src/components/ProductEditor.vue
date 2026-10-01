@@ -1,14 +1,13 @@
 <template>
     <div class="product-editor">
-
         <div class="editor-sidebar">
-
             <!-- Lanche Atual -->
             <section class="section-block">
                 <h3 class="section-title">LANCHE ATUAL (Nome sem número)</h3>
                 <div class="input-group">
+                    <!-- O Input altera SOMENTE o nome real do lanche -->
                     <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer" />
-                    <button class="icon-btn" aria-label="Editar">✎</button>
+                    <button class="icon-btn" aria-label="Editar">✏️</button>
                 </div>
             </section>
 
@@ -16,24 +15,21 @@
             <section class="section-block flex-grow">
                 <h3 class="section-title">INGREDIENTES DO LANCHE</h3>
                 <p class="section-subtitle">Reordene arrastando os itens</p>
-
                 <div class="ingredients-list">
                     <VueDraggable v-model="snack.ingredients" ghost-class="ghost-item" :animation="200">
                         <div v-for="(item, index) in snack.ingredients" :key="item.id" class="ingredient-item">
-
                             <div class="ingredient-main-row">
                                 <div class="info-area">
                                     <span class="index">#{{ index + 1 }}</span>
                                     <span class="name">{{ item.name }}</span>
                                 </div>
-
                                 <img v-if="item.image" :src="item.image" :alt="item.name" class="ingredient-img" />
-
+                                
                                 <button @click.stop="toggleObs(item)" class="btn-observation"
                                     :class="{ 'is-open': openObsId === item.id }" title="Adicionar Observação">
                                     <ObservationIcon />
                                 </button>
-
+                                
                                 <button v-if="openObsId !== item.id" @click.stop="removeIngredient(index)"
                                     class="btn-delete-full" aria-label="Remover">✕</button>
                             </div>
@@ -47,46 +43,40 @@
                                     placeholder="Digite a observação para este item..."></textarea>
                                 <button @click.stop="closeObs" class="btn-close-obs">✓ Concluído</button>
                             </div>
-
                         </div>
                     </VueDraggable>
-
                     <div v-if="snack.ingredients.length === 0" class="empty-list-msg">
                         Nenhum ingrediente adicionado.
                     </div>
-
                 </div>
             </section>
         </div>
 
         <!-- CANVAS -->
         <div class="editor-main">
-            <div class="canvas-area light-canvas">
+            <div class="canvas-area active-column">
+                
+                <!-- Título -->
+                <h2 class="canvas-title">{{ snack.name }}</h2>
 
-                <!-- Elementos Fixos do Topo -->
-                <span class="item-number">{{ snackIndex + 1 }}</span>
+                <!-- Container da Lista -->
+                <div class="canvas-content">
+                    
+                    <!-- Vazio -->
+                    <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
 
-                <!-- Título do Canvas gerado DINAMICAMENTE (01 - Nome) -->
-                <h2 class="canvas-title">
-                   {{ snack.name }}
-                </h2>
-
-                <div class="canvas-divider"></div>
-
-                <!-- Se não houver ingredientes, mostra VAZIO -->
-                <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
-
-                <!-- Lista Espelhada -->
-                <div v-else class="canvas-ingredients-list">
-                    <div v-for="(item, index) in snack.ingredients" :key="item.id" class="canvas-ingredient-item">
-                        <img v-if="item.image" :src="item.image" class="canvas-item-img" />
-                        <div class="canvas-item-texts">
-                            <span class="canvas-item-name">{{ index + 1 }}. {{ item.name }}</span>
-                            <span v-if="item.obs" class="canvas-item-obs">{{ item.obs }}</span>
+                    <!-- Lista Espelhada (Imagem Direita / Texto Esquerda) -->
+                    <div v-else class="layers-list">
+                        <div v-for="item in snack.ingredients" :key="item.id" class="layer-item">
+                            <img v-if="item.image" :src="item.image" class="ingredient-img-canvas" />
+                            <div class="info">
+                                <span class="layer-name">{{ item.name }}</span>
+                                <span v-if="item.obs" class="layer-obs">{{ item.obs }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     </div>
@@ -97,7 +87,6 @@ import { ref } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ObservationIcon from './icons/ObservationIcon.vue'
 
-// Agora recebemos não só o lanche, mas também a posição dele (index)
 const props = defineProps({
     snack: { type: Object, required: true },
     snackIndex: { type: Number, required: true }
@@ -200,6 +189,7 @@ button {
     color: #fff;
 }
 
+/* Lista de ingredientes da sidebar */
 .ingredients-list {
     display: flex;
     flex-direction: column;
@@ -277,14 +267,14 @@ button {
 }
 
 .ingredient-img {
-    width: 76px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     margin-right: 10px;
-    background-color: #ffffff; /* Fundo branco para proteger a imagem */
-    border-radius: 4px; /* Bordinha arredondada elegante */
+    background-color: #ffffff;
+    border-radius: 4px;
     padding: 2px;
     box-sizing: border-box;
-    /* mix-blend-mode removido daqui! */
 }
 
 .btn-observation {
@@ -395,6 +385,9 @@ button {
     color: #fff;
 }
 
+/* =========================================
+   CANVAS - ESTILO V1
+========================================= */
 .editor-main {
     flex-grow: 1;
     display: flex;
@@ -404,143 +397,125 @@ button {
     background-color: #1a1a1a;
     border-radius: 12px;
     padding: 20px;
+    overflow: hidden;
 }
 
-.canvas-area.light-canvas {
+.canvas-area {
     position: relative;
-    width: 85%;
-    aspect-ratio: 9/16;
-    background-color: #fffdfc;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 380px; 
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 90px;
+    padding: 15px 12px;
     box-sizing: border-box;
+    overflow: hidden; /* Mantém tudo dentro do container branco */
 }
 
-.item-number {
+.active-column {
+    background: #fffaf7; 
+    box-shadow: inset 0 0 0 2px #f38b41, 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.edit-badge {
     position: absolute;
-    top: 35px;
-    left: 5%;
-    font-size: 1.1rem;
+    top: 12px;
+    right: 12px;
+    font-size: 9px;
     font-weight: 900;
-    color: #1a1a24;
+    color: #f38b41;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .canvas-title {
-    position: absolute;
-    top: 35px;
-    width: 100%;
-    text-align: center;
-    color: #1a1a24;
-    font-size: 1.1rem;
+    flex-shrink: 0; /* Impede o título de esmagar */
+    font-size: 15px;
     font-weight: 900;
-    margin: 0;
+    text-align: center;
+    border-bottom: 2px solid #f38b41; 
+    padding-bottom: 12px;
+    margin-top: 6px;
+    margin-bottom: 8px;
     text-transform: uppercase;
+    color: #111827;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.canvas-divider {
-    position: absolute;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    height: 2px;
-    background-color: #f38b41;
-}
-
-.canvas-ingredients-list {
-    width: 85%;
+.canvas-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    overflow-y: auto;
-    padding-bottom: 20px;
+    overflow: hidden; /* REMOVIDO O SCROLL (auto -> hidden) */
+    min-height: 0; 
 }
 
-.canvas-ingredients-list::-webkit-scrollbar {
+.canvas-content::-webkit-scrollbar {
     display: none;
 }
 
-.canvas-ingredient-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-bottom: 1px dashed #e0e0e0;
-    padding-bottom: 8px;
-}
-
-.canvas-ingredient-item:last-child {
-    border-bottom: none;
-}
-
-.canvas-item-img {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-    mix-blend-mode: multiply;
-    flex-shrink: 0;
-}
-
-.canvas-item-texts {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.canvas-item-name {
-    font-size: 0.85rem;
-    font-weight: 800;
-    color: #1a1a24;
-    text-transform: uppercase;
-}
-
-.canvas-item-obs {
-    font-size: 0.7rem;
-    font-weight: 500;
-    color: #cc3333;
-    font-style: italic;
-}
-
 .canvas-empty-text {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #d8d8dd;
-    font-size: 1rem;
-    font-weight: 800;
+    margin: auto;
+    color: #d1d5db;
+    font-size: 12px;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.pagination-controls {
+.layers-list {
     display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 20px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2px; /* Gap reduzido para não gastar espaço útil quando houver muitos itens */
+    height: 100%;
+    min-height: 0;
 }
 
-.page-btn {
-    background-color: #2a2a2a;
-    border: none;
-    color: white;
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    cursor: pointer;
+.layer-item {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
+    flex: 1; /* MÁGICA: Faz o item crescer ou encolher para preencher o espaço */
+    min-height: 0; /* MÁGICA 2: Permite que o item encolha infinitamente sem quebrar o layout */
+    max-height: 70px; /* Trava o tamanho máximo para não ficarem gigantes se houver apenas 2 itens */
+    width: 100%;
+}
+
+.ingredient-img-canvas {
+    max-width: 120px;
+    height: 100%; /* A imagem vai acompanhar a altura "espremida" do item */
+    width: auto;
+    object-fit: contain;
+    mix-blend-mode: multiply; 
+    flex-shrink: 1; /* Permite que a área da imagem encolha se necessário */
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
+    padding-left: 12px;
+    flex: 1;
+    min-width: 0;
 }
 
-.page-btn:hover {
-    background-color: #3a3a3a;
+.layer-name {
+    font-size: 11px;
+    font-weight: 900;
+    color: #374151; 
+    text-transform: uppercase;
+    line-height: 1.2;
+    white-space: normal;
+    word-wrap: break-word;
 }
 
-.page-indicator {
-    font-size: 0.85rem;
-    color: #ccc;
+.layer-obs {
+    font-size: 9px;
+    font-weight: 600;
+    color: #cc3333;
+    font-style: italic;
+    margin-top: 2px;
 }
 </style>
