@@ -1,53 +1,57 @@
 <template>
   <aside class="ingredient-sidebar">
-    <div class="sidebar-header">
-      <div class="title-row">
-        <span class="icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-        </span>
-        <h2>INGREDIENTES</h2>
+    <div class="sidebar-top">
+      <div class="sidebar-header">
+        <h2>Ingredientes</h2>
+        <span class="total">{{ totalItems }} itens</span>
       </div>
-      <p>Clique ou arraste para a coluna ao lado</p>
+
+      <div class="search">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input v-model="search" type="text" placeholder="Buscar ingrediente..." />
+        <button v-if="search" class="search-clear" @click="search = ''" aria-label="Limpar busca">✕</button>
+      </div>
+
+      <div class="chips">
+        <button class="chip" :class="{ active: activeCategory === null }" @click="activeCategory = null">
+          Todos
+        </button>
+        <button v-for="category in categories" :key="category.id" class="chip"
+          :class="{ active: activeCategory === category.id }" @click="activeCategory = category.id">
+          {{ category.name }}
+        </button>
+      </div>
     </div>
 
-    <div class="search">
-      <input v-model="search" type="text" placeholder="Buscar ingrediente..." />
-    </div>
+    <div class="sidebar-scroll">
+      <div v-if="isLoading" class="state-msg">Carregando ingredientes...</div>
+      <div v-else-if="filteredCategories.length === 0" class="state-msg">
+        Nenhum ingrediente encontrado.
+      </div>
 
-    <!-- Estado de Carregamento -->
-    <div v-if="isLoading" class="loading-state">
-      <p>Carregando ingredientes...</p>
-    </div>
-
-    <!-- Lista de Categorias Dinâmica -->
-    <div v-else class="categories-list">
-      <div v-for="category in filteredCategories" :key="category.id" class="category-block">
-        <div class="category-header">
-          <span class="category-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f38b41" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </span>
-          <h3 class="category-title">{{ category.name }}</h3>
-        </div>
+      <section v-for="category in filteredCategories" :key="category.id" class="category-block">
+        <h3 class="category-title">
+          {{ category.name }}
+          <span class="category-count">{{ category.items.length }}</span>
+        </h3>
 
         <div class="ingredient-grid">
-          <div v-for="ingredient in category.items" :key="ingredient.id" class="ingredient-card" draggable="true"
-            @dragstart="onDragStart(ingredient, $event)" @click="$emit('add-ingredient', ingredient)">
-            <div class="ingredient-image">
-              <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" />
+          <button v-for="ingredient in category.items" :key="ingredient.id" class="ingredient-card" draggable="true"
+            :title="`Adicionar ${ingredient.name}`" @dragstart="onDragStart(ingredient, $event)"
+            @click="$emit('add-ingredient', ingredient)">
+            <span class="ingredient-image">
+              <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" loading="lazy" />
               <span v-else class="no-image">🍔</span>
-            </div>
-            <div class="ingredient-name">
-              {{ ingredient.name }}
-            </div>
-          </div>
+              <span class="add-badge">+</span>
+            </span>
+            <span class="ingredient-name">{{ ingredient.name }}</span>
+          </button>
         </div>
-      </div>
+      </section>
     </div>
   </aside>
 </template>
@@ -60,26 +64,34 @@ import { slugify, resolveImagePath } from '../ingredientImages.js'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
+const activeCategory = ref(null)
 
 // Estados Reativos
 const categories = ref([])
 const isLoading = ref(true)
 
+const CATEGORY_LABELS = {
+  paes: 'Pães',
+  carnes: 'Carnes',
+  queijos: 'Queijos',
+  vegetais: 'Vegetais',
+  frutas: 'Frutas',
+  molhos: 'Molhos',
+  frios: 'Frios',
+  acompanhamentos: 'Acompanhamentos',
+  outros: 'Outros'
+}
+
+const labelFor = (id) => CATEGORY_LABELS[id] || id.charAt(0).toUpperCase() + id.slice(1)
+
 onMounted(() => {
   try {
-    // Como importamos direto, não precisamos de fetch ou await.
-    // O flatData já é o array de ingredientes prontinho.
-
     // Agrupa a lista plana em Categorias
-    const groupedData = flatData.reduce((acc, curr) => {
+    categories.value = flatData.reduce((acc, curr) => {
       let category = acc.find(c => c.id === curr.categoria)
 
       if (!category) {
-        category = {
-          id: curr.categoria,
-          name: curr.categoria.toUpperCase(),
-          items: []
-        }
+        category = { id: curr.categoria, name: labelFor(curr.categoria), items: [] }
         acc.push(category)
       }
 
@@ -92,8 +104,6 @@ onMounted(() => {
 
       return acc
     }, [])
-
-    categories.value = groupedData
   } catch (error) {
     console.error('Erro ao processar ingredientes:', error)
   } finally {
@@ -101,17 +111,19 @@ onMounted(() => {
   }
 })
 
-// Filtro de busca
+const totalItems = computed(() => categories.value.reduce((sum, c) => sum + c.items.length, 0))
+
+// Filtro de busca + categoria
 const filteredCategories = computed(() => {
   const term = search.value.toLowerCase().trim()
-  if (!term) return categories.value
 
-  return categories.value.map(category => {
-    const filteredItems = category.items.filter(ingredient =>
-      ingredient.name.toLowerCase().includes(term)
-    )
-    return { ...category, items: filteredItems }
-  }).filter(category => category.items.length > 0)
+  return categories.value
+    .filter(category => activeCategory.value === null || category.id === activeCategory.value)
+    .map(category => ({
+      ...category,
+      items: term ? category.items.filter(i => i.name.toLowerCase().includes(term)) : category.items
+    }))
+    .filter(category => category.items.length > 0)
 })
 
 function onDragStart(ingredient, event) {
@@ -121,189 +133,252 @@ function onDragStart(ingredient, event) {
 </script>
 
 <style scoped>
-.loading-state {
-  text-align: center;
-  color: #888;
-  padding: 40px 0;
-  font-size: 0.85rem;
-  font-style: italic;
+.ingredient-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font);
 }
 
-.ingredient-sidebar {
-  box-sizing: border-box;
-  padding: 20px;
-  background: #101416;
-  color: #fff;
-  overflow-y: auto;
-  font-family: sans-serif;
+.sidebar-top {
+  flex-shrink: 0;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--border);
 }
 
 .sidebar-header {
-  margin-bottom: 18px;
-}
-
-.title-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #f38b41;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
-.title-row .icon {
-  display: flex;
-  align-items: center;
-}
-
-.title-row h2 {
+.sidebar-header h2 {
   margin: 0;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
-.sidebar-header p {
-  margin: 8px 0 0;
-  color: #92989c;
-  font-size: 12px;
+.total {
+  font-size: 0.72rem;
+  color: var(--text-faint);
 }
 
 .search {
   position: relative;
-  margin-bottom: 24px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
 }
 
 .search input {
   width: 100%;
-  height: 42px;
+  height: 38px;
   box-sizing: border-box;
-  padding: 0 42px 0 14px;
-  background: #151a1d;
-  border: 1px solid #2b3033;
-  border-radius: 6px;
-  color: #fff;
+  padding: 0 34px 0 36px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.82rem;
   outline: none;
-  font-size: 13px;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s;
 }
 
 .search input::placeholder {
-  color: #777e82;
+  color: var(--text-faint);
 }
 
 .search input:focus {
-  border-color: #f38b41;
+  border-color: var(--accent);
 }
 
-.categories-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  cursor: pointer;
 }
 
-.category-block {
+.chips {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
-.category-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.category-icon {
-  display: flex;
-  align-items: center;
+.chip:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px 24px;
+}
+
+.state-msg {
+  text-align: center;
+  color: var(--text-faint);
+  padding: 40px 0;
+  font-size: 0.82rem;
+}
+
+.category-block + .category-block {
+  margin-top: 22px;
 }
 
 .category-title {
-  margin: 0;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #e5e5e5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+}
+
+.category-count {
+  padding: 1px 7px;
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  background: var(--bg);
+  border-radius: 999px;
 }
 
 .ingredient-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .ingredient-card {
-  width: 170px;
-  height: 100px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: #151a1d;
-  border: 1px solid #2b3033;
-  border-radius: 6px;
+  padding: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   overflow: hidden;
   cursor: grab;
-  transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  font-family: inherit;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .ingredient-card:hover {
-  background: #1b2023;
-  border-color: #555c60;
-  transform: translateY(-1px);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
 
 .ingredient-card:active {
   cursor: grabbing;
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .ingredient-image {
-  width: 100%;
-  flex-grow: 1; 
-  background: #ffffff; /* Fundo branco para mesclar com a imagem sem deixar faixas */
-  overflow: hidden;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 4 / 3;
+  background: #ffffff;
 }
 
 .ingredient-image img {
   width: 100%;
   height: 100%;
-  display: block;
-  object-fit: contain; /* Garante que não corte a imagem */
-  padding: 0; /* Removido para encostar na borda */
+  object-fit: contain;
+}
+
+.no-image {
+  font-size: 1.6rem;
+  opacity: 0.5;
+}
+
+.add-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #1a1109;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.ingredient-card:hover .add-badge {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .ingredient-name {
-  height: 32px; 
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 8px;
+  min-height: 30px;
+  padding: 4px 6px;
   box-sizing: border-box;
-  color: #e5e5e5;
-  font-size: 0.7rem;
+  color: var(--text);
+  font-size: 0.66rem;
   font-weight: 600;
   text-align: center;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; 
+  line-height: 1.15;
 }
 
-.ingredient-sidebar::-webkit-scrollbar {
+.sidebar-scroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.ingredient-sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.ingredient-sidebar::-webkit-scrollbar-thumb {
-  background: #353b3e;
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
   border-radius: 10px;
 }
 </style>

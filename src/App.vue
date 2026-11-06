@@ -1,4 +1,7 @@
 <template>
+  <div class="app-shell">
+  <NavBar :printMode="isPrintMode" :snackCount="snacks.length" @set-mode="isPrintMode = $event === 'print'" />
+
   <div v-if="!isPrintMode" class="app-container">
     <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
     
@@ -63,6 +66,7 @@
 
     </aside>
   </div>
+  </div>
 </template>
 
 <script setup>
@@ -74,6 +78,7 @@ import GuideManager from './components/GuideManager.vue';
 import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
 import PrintOrderSidebar from './components/PrintOrderSidebar.vue';
+import NavBar from './components/NavBar.vue';
 import { slugify, resolveImage } from './ingredientImages.js'
 
 const STORAGE_KEYS = {
@@ -197,22 +202,50 @@ const handleAddIngredient = (ingredient) => {
 </script>
 
 <style>
+/* Tokens de design (usados em todos os componentes) */
+:root {
+  --bg: #0e1113;
+  --surface: #14181b;
+  --surface-2: #181d21;
+  --border: #242a2f;
+  --border-strong: #38414a;
+  --text: #f1f3f4;
+  --text-muted: #9aa3a9;
+  --text-faint: #69737a;
+  --accent: #f38b41;
+  --accent-soft: rgba(243, 139, 65, 0.12);
+  --accent-border: rgba(243, 139, 65, 0.35);
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   margin: 0;
-  background-color: #121212;
-  color: #fff;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
   overflow: hidden;
 }
 
-.app-container, .print-container {
+.app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
 }
 
-.ingredient-sidebar { width: 100%; max-width: 500px; min-width: 320px; flex-shrink: 1; }
-.product-editor { flex: 1; }
-.guide-manager { flex-shrink: 0; }
+.app-container, .print-container {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+/* 3 colunas de cards de 3 ingredientes cada: largura fixa confortável */
+.ingredient-sidebar { width: 400px; flex-shrink: 0; }
+.product-editor { flex: 1; min-width: 0; min-height: 0; }
+.guide-manager { flex-shrink: 0; min-height: 0; }
 
 /* =========================================
    NOVO: ESTILOS DA COLUNA UNIFICADA
@@ -225,7 +258,7 @@ body {
 
 .unified-sidebar {
   width: 380px; /* Levemente mais largo para acomodar bem as duas abas */
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background-color: #121212;

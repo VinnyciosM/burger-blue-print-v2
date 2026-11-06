@@ -162,13 +162,13 @@ button {
   justify-content: space-between;
   gap: 32px;
   width: 350px;
-  height: 100vh;
-  background-color: #121212;
+  height: 100%;
+  background-color: var(--surface);
   color: #ffffff;
   padding: 20px;
   box-sizing: border-box;
-  font-family: sans-serif;
-  border-left: 1px solid #222;
+  font-family: var(--font);
+  border-left: 1px solid var(--border);
 }
 
 .top-content {

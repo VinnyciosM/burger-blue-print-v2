@@ -117,20 +117,21 @@ button {
 
 .product-editor {
     display: flex;
-    gap: 24px;
-    background-color: #121212;
+    gap: 20px;
+    background-color: var(--bg);
     color: #ffffff;
     padding: 20px;
     box-sizing: border-box;
-    font-family: sans-serif;
+    font-family: var(--font);
 }
 
 .editor-sidebar {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 350px;
+    width: 320px;
     flex-shrink: 0;
+    min-height: 0;
 }
 
 .section-block {
@@ -163,10 +164,10 @@ button {
 .input-group {
     display: flex;
     align-items: center;
-    background-color: #1e1e1e;
-    border-radius: 6px;
+    background-color: var(--surface);
+    border-radius: 10px;
     padding: 4px 8px;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
 }
 
 .dark-input {
@@ -216,12 +217,12 @@ button {
 }
 
 .ingredient-item {
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 5px;
     display: flex;
     flex-direction: column;
-    background-color: #1e1e1e;
-    border: 1px solid #2a2a2a;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
     cursor: grab;
     overflow: hidden;
 }
@@ -394,8 +395,9 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: #1a1a1a;
-    border-radius: 12px;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
     padding: 20px;
     overflow: hidden;
 }
