@@ -74,6 +74,7 @@ import GuideManager from './components/GuideManager.vue';
 import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
 import PrintOrderSidebar from './components/PrintOrderSidebar.vue';
+import { slugify, resolveImage } from './ingredientImages.js'
 
 const STORAGE_KEYS = {
   snacks: 'manualburger_snacks',
@@ -119,6 +120,13 @@ onMounted(() => {
     if (savedSnacks) {
       const parsed = JSON.parse(savedSnacks)
       if (Array.isArray(parsed)) {
+        // Reaponta as imagens para os arquivos locais (os caminhos mudam a cada build)
+        for (const snack of parsed) {
+          for (const ing of snack.ingredients || []) {
+            ing.slug = ing.slug || slugify(ing.name)
+            ing.image = resolveImage(ing.slug)
+          }
+        }
         snacks.value = parsed
         activeSnackId.value = savedActiveId ? parseInt(savedActiveId) : (snacks.value[0]?.id || null)
       }
@@ -180,6 +188,7 @@ const handleAddIngredient = (ingredient) => {
     currentSnack.value.ingredients.push({
       id: Date.now(),
       name: ingredient.name,
+      slug: ingredient.slug,
       obs: '',
       image: ingredient.image
     })

@@ -39,7 +39,8 @@
           <div v-for="ingredient in category.items" :key="ingredient.id" class="ingredient-card" draggable="true"
             @dragstart="onDragStart(ingredient, $event)" @click="$emit('add-ingredient', ingredient)">
             <div class="ingredient-image">
-              <img :src="ingredient.image" :alt="ingredient.name" />
+              <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" />
+              <span v-else class="no-image">🍔</span>
             </div>
             <div class="ingredient-name">
               {{ ingredient.name }}
@@ -55,6 +56,7 @@
 import { computed, ref, onMounted } from 'vue'
 // Importa o arquivo JSON diretamente (o Vite faz o parse automático!)
 import flatData from '../ingredientes.json'
+import { slugify, resolveImage } from '../ingredientImages.js'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
@@ -84,7 +86,8 @@ onMounted(() => {
       category.items.push({
         id: curr.id,
         name: curr.nome,
-        image: curr.url
+        slug: slugify(curr.nome),
+        image: resolveImage(slugify(curr.nome))
       })
 
       return acc
