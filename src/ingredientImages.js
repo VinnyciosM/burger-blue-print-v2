@@ -23,7 +23,13 @@ export function slugify(name = '') {
     .replace(/^-+|-+$/g, '')
 }
 
-// Retorna a URL da imagem ou '' se o arquivo ainda não foi importado.
+// Retorna a URL da imagem a partir do slug ou '' se o arquivo não existe.
 export function resolveImage(slug) {
   return bySlug[slug] || ''
+}
+
+// Retorna a URL a partir do caminho declarado no JSON (ex.: "assets/ingredientes/alface.avif").
+export function resolveImagePath(path = '') {
+  const file = path.split('/').pop().replace(/\.[^.]+$/, '').toLowerCase()
+  return bySlug[file] || ''
 }

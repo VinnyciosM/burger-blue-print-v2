@@ -56,7 +56,7 @@
 import { computed, ref, onMounted } from 'vue'
 // Importa o arquivo JSON diretamente (o Vite faz o parse automático!)
 import flatData from '../ingredientes.json'
-import { slugify, resolveImage } from '../ingredientImages.js'
+import { slugify, resolveImagePath } from '../ingredientImages.js'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
@@ -87,7 +87,7 @@ onMounted(() => {
         id: curr.id,
         name: curr.nome,
         slug: slugify(curr.nome),
-        image: resolveImage(slugify(curr.nome))
+        image: resolveImagePath(curr.imagem)
       })
 
       return acc
