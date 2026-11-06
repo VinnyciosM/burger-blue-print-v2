@@ -1,6 +1,4 @@
 <template>
-  <!-- <LoginScreen v-if="!isAuthenticated" @login-success="handleLoginSuccess" /> -->
-
   <div v-if="!isPrintMode" class="app-container">
     <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
     
@@ -70,16 +68,18 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 
-import LoginScreen from './components/LoginScreen.vue';
 import IngredientSidebar from './components/IngredientSidebar.vue';
 import ProductEditor from './components/ProductEditor.vue';
 import GuideManager from './components/GuideManager.vue';
 import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
-// import TopNavBar from './components/TopNavBar.vue';
 import PrintOrderSidebar from './components/PrintOrderSidebar.vue';
 
-const isAuthenticated = ref(false)
+const STORAGE_KEYS = {
+  snacks: 'manualburger_snacks',
+  activeId: 'manualburger_active_id'
+}
+
 const isPrintMode = ref(false)
 
 // NOVO: Estado que controla qual aba da impressão está aberta
@@ -102,17 +102,29 @@ const updatePrintSettings = (newSettings) => {
 }
 
 onMounted(() => {
-  const savedAuth = localStorage.getItem('keeta_auth')
-  if (savedAuth === 'true') {
-    isAuthenticated.value = true
+  // Migração única das chaves antigas (versões anteriores ao projeto público)
+  for (const [oldKey, newKey] of [['keeta_snacks', STORAGE_KEYS.snacks], ['keeta_active_id', STORAGE_KEYS.activeId]]) {
+    const oldValue = localStorage.getItem(oldKey)
+    if (oldValue !== null && localStorage.getItem(newKey) === null) {
+      localStorage.setItem(newKey, oldValue)
+    }
+    localStorage.removeItem(oldKey)
   }
+  localStorage.removeItem('keeta_auth')
 
-  const savedSnacks = localStorage.getItem('keeta_snacks')
-  const savedActiveId = localStorage.getItem('keeta_active_id')
+  const savedActiveId = localStorage.getItem(STORAGE_KEYS.activeId)
 
-  if (savedSnacks) {
-    snacks.value = JSON.parse(savedSnacks)
-    activeSnackId.value = savedActiveId ? parseInt(savedActiveId) : (snacks.value[0]?.id || null)
+  try {
+    const savedSnacks = localStorage.getItem(STORAGE_KEYS.snacks)
+    if (savedSnacks) {
+      const parsed = JSON.parse(savedSnacks)
+      if (Array.isArray(parsed)) {
+        snacks.value = parsed
+        activeSnackId.value = savedActiveId ? parseInt(savedActiveId) : (snacks.value[0]?.id || null)
+      }
+    }
+  } catch (error) {
+    console.error('Dados salvos inválidos, iniciando do zero:', error)
   }
 
   if (snacks.value.length === 0) {
@@ -120,18 +132,13 @@ onMounted(() => {
   }
 })
 
-const handleLoginSuccess = () => {
-  isAuthenticated.value = true
-  localStorage.setItem('keeta_auth', 'true')
-}
-
 watch(snacks, (newVal) => {
-  localStorage.setItem('keeta_snacks', JSON.stringify(newVal))
+  localStorage.setItem(STORAGE_KEYS.snacks, JSON.stringify(newVal))
 }, { deep: true })
 
 watch(activeSnackId, (newVal) => {
   if (newVal !== null) {
-    localStorage.setItem('keeta_active_id', newVal.toString())
+    localStorage.setItem(STORAGE_KEYS.activeId, newVal.toString())
   }
 })
 

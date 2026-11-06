@@ -25,7 +25,6 @@
               <!-- Calcula o número geral do lanche para não zerar a cada página -->
               <span class="snack-number">{{ String(getGlobalIndex(pageIndex, localIndex)).padStart(2, '0') }}</span>
               <h4 class="snack-name">{{ snack.name }}</h4>
-              <div class="brand-badge">keeta</div>
             </div>
 
             <div class="card-body">
@@ -51,7 +50,7 @@
       <!-- Aviso Inferior (Aparece no final do scroll) -->
       <div class="bottom-controls">
         <p class="disclaimer">
-          Esta é uma simulação. O resultado final pode ter pequenas variações.
+          Pré-visualização. Confira margens e tamanho do papel antes de imprimir.
         </p>
       </div>
 
@@ -264,15 +263,6 @@ const dynamicStyles = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.brand-badge {
-  background: #facc15;
-  color: #111;
-  font-weight: 800;
-  font-size: 0.6rem;
-  padding: 4px 8px;
-  border-radius: 12px;
 }
 
 .card-body {

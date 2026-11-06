@@ -45,7 +45,6 @@
             
             <select v-model="sortBy" @change="applySort" class="dark-select flex-1">
               <option value="name">Nome</option>
-              <option value="price">Preço</option>
               <option value="id">Criação</option>
             </select>
             
