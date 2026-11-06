@@ -9,7 +9,7 @@
     
     <GuideManager class="guide-manager" v-model:snacks="snacks" :activeSnackId="activeSnackId"
       @open-print-mode="isPrintMode = true" @add-snack="createNewSnack" @select-snack="selectSnack"
-      @delete-snack="deleteSnack" />
+      @duplicate-snack="duplicateSnack" @delete-snack="deleteSnack" />
   </div>
 
   <div v-else class="print-container">
@@ -41,31 +41,35 @@
           class="tab-btn" 
           :class="{ active: printTab === 'order' }"
         >
-          📚 Ordem
+          📚 Lanches
         </button>
       </div>
 
       <!-- Área de Conteúdo (Alterna os componentes) -->
       <div class="sidebar-content">
         <PrintSettingsSidebar 
-          v-if="printTab === 'settings'" 
+          v-show="printTab === 'settings'" 
           @back-to-edit="isPrintMode = false" 
           @update-settings="updatePrintSettings" 
           class="inner-sidebar"
         />
 
-        <PrintOrderSidebar 
-          v-else
-          v-model:snacks="snacks" 
-          :settings="printSettings" 
-          @delete-snack="deleteSnack"
-          @add-snack="createNewSnack" 
-          class="inner-sidebar"
-        />
+        <div v-show="printTab === 'order'" class="inner-sidebar order-panel">
+          <SnackList v-model:snacks="snacks" :activeSnackId="activeSnackId" @select-snack="selectSnack"
+            @add-snack="createNewSnack" @duplicate-snack="duplicateSnack" @delete-snack="deleteSnack" />
+        </div>
       </div>
 
     </aside>
   </div>
+
+  <!-- Aviso com "Desfazer" após excluir um lanche -->
+  <Transition name="toast">
+    <div v-if="lastDeleted" class="toast" role="status">
+      <span>Lanche "{{ lastDeleted.snack.name || 'Sem nome' }}" excluído</span>
+      <button @click="undoDelete">Desfazer</button>
+    </div>
+  </Transition>
   </div>
 </template>
 
@@ -77,7 +81,7 @@ import ProductEditor from './components/ProductEditor.vue';
 import GuideManager from './components/GuideManager.vue';
 import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
-import PrintOrderSidebar from './components/PrintOrderSidebar.vue';
+import SnackList from './components/SnackList.vue';
 import NavBar from './components/NavBar.vue';
 import { slugify, resolveImage } from './ingredientImages.js'
 
@@ -163,35 +167,82 @@ const currentSnackIndex = computed(() => {
   return snacks.value.findIndex(s => s.id === activeSnackId.value)
 })
 
+let idCounter = 0
+const uid = () => Date.now() * 1000 + (idCounter++ % 1000)
+
 const createNewSnack = () => {
-  const newId = Date.now()
+  const newId = uid()
   snacks.value.push({
     id: newId,
     name: `Novo Lanche`,
     ingredients: []
   })
   activeSnackId.value = newId
+  return newId
 }
 
 const selectSnack = (id) => {
   activeSnackId.value = id
 }
 
-const deleteSnack = (index) => {
-  const deletedId = snacks.value[index].id
-  snacks.value.splice(index, 1)
+const duplicateSnack = (id) => {
+  const index = snacks.value.findIndex(s => s.id === id)
+  if (index === -1) return
+  const original = snacks.value[index]
+  const copy = {
+    ...JSON.parse(JSON.stringify(original)),
+    id: uid(),
+    name: `${original.name || 'Lanche'} (cópia)`
+  }
+  copy.ingredients.forEach(ing => { ing.id = uid() })
+  snacks.value.splice(index + 1, 0, copy)
+  activeSnackId.value = copy.id
+}
+
+// --- Exclusão com desfazer ---
+const lastDeleted = ref(null)
+let undoTimer = null
+
+const deleteSnack = (id) => {
+  const index = snacks.value.findIndex(s => s.id === id)
+  if (index === -1) return
+
+  const [snack] = snacks.value.splice(index, 1)
+  let placeholderId = null
 
   if (snacks.value.length === 0) {
-    createNewSnack()
-  } else if (activeSnackId.value === deletedId) {
-    activeSnackId.value = snacks.value[0].id
+    placeholderId = createNewSnack()
+  } else if (activeSnackId.value === id) {
+    activeSnackId.value = snacks.value[Math.min(index, snacks.value.length - 1)].id
   }
+
+  lastDeleted.value = { snack, index, placeholderId }
+  clearTimeout(undoTimer)
+  undoTimer = setTimeout(() => { lastDeleted.value = null }, 6000)
+}
+
+const undoDelete = () => {
+  if (!lastDeleted.value) return
+  const { snack, index, placeholderId } = lastDeleted.value
+
+  // Remove o lanche vazio criado automaticamente quando a lista ficou vazia
+  if (placeholderId !== null) {
+    const placeholder = snacks.value.find(s => s.id === placeholderId)
+    if (placeholder && placeholder.ingredients.length === 0) {
+      snacks.value.splice(snacks.value.indexOf(placeholder), 1)
+    }
+  }
+
+  snacks.value.splice(Math.min(index, snacks.value.length), 0, snack)
+  activeSnackId.value = snack.id
+  lastDeleted.value = null
+  clearTimeout(undoTimer)
 }
 
 const handleAddIngredient = (ingredient) => {
   if (currentSnack.value) {
     currentSnack.value.ingredients.push({
-      id: Date.now(),
+      id: uid(),
       name: ingredient.name,
       slug: ingredient.slug,
       obs: '',
@@ -349,4 +400,37 @@ body {
 .inner-sidebar .btn-back {
   display: none !important;
 }
+
+/* Aviso de exclusão */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px 10px 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font-size: 0.82rem;
+}
+
+.toast button {
+  padding: 6px 12px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #1a1109;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.toast-enter-active, .toast-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 10px); }
+
+.order-panel { display: flex; flex-direction: column; padding: 0 20px 20px; }
 </style>
