@@ -123,7 +123,7 @@
       
       <div class="info-box">
         <span class="info-icon">ℹ️</span>
-        <p>Após ajustar as configurações, confira a pré-visualização e depois gere o PDF.</p>
+        <p>Na janela de impressão que abrir, escolha “Salvar como PDF” como destino. Em “Mais definições”, deixe as margens em “Nenhuma”.</p>
       </div>
     </div>
 

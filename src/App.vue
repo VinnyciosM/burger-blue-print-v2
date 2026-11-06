@@ -51,6 +51,7 @@
           v-show="printTab === 'settings'" 
           @back-to-edit="isPrintMode = false" 
           @update-settings="updatePrintSettings" 
+          @generate-pdf="printManual" 
           class="inner-sidebar"
         />
 
@@ -237,6 +238,15 @@ const undoDelete = () => {
   activeSnackId.value = snack.id
   lastDeleted.value = null
   clearTimeout(undoTimer)
+}
+
+// Gera o PDF usando a impressão do navegador ("Salvar como PDF"), sem dependências extras
+const printManual = () => {
+  const previousTitle = document.title
+  document.title = 'Manual-Burger'
+  const restore = () => { document.title = previousTitle; window.removeEventListener('afterprint', restore) }
+  window.addEventListener('afterprint', restore)
+  window.print()
 }
 
 const handleAddIngredient = (ingredient) => {
@@ -433,4 +443,47 @@ body {
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 10px); }
 
 .order-panel { display: flex; flex-direction: column; padding: 0 20px 20px; }
+
+/* =========================================
+   IMPRESSÃO / PDF — apenas as folhas do manual
+========================================= */
+@media print {
+  html, body {
+    height: auto;
+    overflow: visible;
+    background: #fff;
+  }
+
+  .navbar, .unified-sidebar, .zoom-controls, .bottom-controls, .toast {
+    display: none !important;
+  }
+
+  .app-shell, .print-container, .print-canvas-area,
+  .print-canvas-wrapper, .pages-scroll-container {
+    display: block !important;
+    height: auto !important;
+    width: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #fff !important;
+  }
+
+  .paper-sheet {
+    zoom: 1 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    break-after: page;
+    page-break-after: always;
+    break-inside: avoid;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .paper-sheet.last-sheet {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
 </style>

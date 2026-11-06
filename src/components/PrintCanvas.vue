@@ -1,18 +1,21 @@
 <template>
   <div class="print-canvas-wrapper">
 
+    <!-- Tamanho/orientação do papel usados pelo navegador ao imprimir ou salvar em PDF -->
+    <component :is="'style'">@page { size: {{ pageSize }}; margin: 0; }</component>
+
     <!-- Controles de Zoom Flutuantes -->
     <div class="zoom-controls">
-      <button class="zoom-btn">+</button>
-      <span class="zoom-level">100%</span>
-      <button class="zoom-btn">-</button>
+      <button class="zoom-btn" title="Aumentar zoom" @click="zoomIn">+</button>
+      <button class="zoom-level" title="Ajustar à largura" @click="userZoomed = false; fitToWidth()">{{ Math.round(zoom * 100) }}%</button>
+      <button class="zoom-btn" title="Diminuir zoom" @click="zoomOut">−</button>
     </div>
 
     <!-- Container de Rolagem com TODAS as Páginas -->
-    <div class="pages-scroll-container">
+    <div ref="scrollEl" class="pages-scroll-container">
 
       <!-- Renderiza uma folha para cada página calculada -->
-      <div v-for="(pageSnacks, pageIndex) in pages" :key="pageIndex" class="paper-sheet" :class="settings.orientation"
+      <div v-for="(pageSnacks, pageIndex) in pages" :key="pageIndex" class="paper-sheet" :class="[settings.orientation, { 'last-sheet': pageIndex === pages.length - 1 }]"
         :style="dynamicStyles">
 
         <!-- Grid de Corte -->
@@ -60,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   snacks: {
@@ -95,11 +98,58 @@ const getGlobalIndex = (pageIndex, localIndex) => {
   return (pageIndex * props.settings.itemsPerPage) + localIndex + 1
 }
 
+// Tamanhos reais de papel (mm) — a folha é desenhada em tamanho real e o zoom só escala a visualização,
+// assim a pré-visualização é idêntica ao PDF.
+const PAPERS = {
+  a4: { w: 210, h: 297, css: 'A4' },
+  letter: { w: 215.9, h: 279.4, css: 'Letter' }
+}
+
+const paper = computed(() => PAPERS[props.settings.paper] || PAPERS.a4)
+const isLandscape = computed(() => props.settings.orientation === 'landscape')
+const sheetWidthMm = computed(() => (isLandscape.value ? paper.value.h : paper.value.w))
+const sheetHeightMm = computed(() => (isLandscape.value ? paper.value.w : paper.value.h))
+const pageSize = computed(() => `${paper.value.css} ${isLandscape.value ? 'landscape' : 'portrait'}`)
+
+// --- Zoom da visualização ---
+const MM_TO_PX = 96 / 25.4
+const scrollEl = ref(null)
+const userZoomed = ref(false)
+const zoom = ref(0.8)
+const clampZoom = (v) => Math.min(2, Math.max(0.3, Math.round(v * 100) / 100))
+const zoomIn = () => { userZoomed.value = true; zoom.value = clampZoom(zoom.value + 0.1) }
+const zoomOut = () => { userZoomed.value = true; zoom.value = clampZoom(zoom.value - 0.1) }
+
+const fitToWidth = () => {
+  if (!scrollEl.value) return
+  const available = scrollEl.value.clientWidth - 40
+  zoom.value = clampZoom(Math.min(1, available / (sheetWidthMm.value * MM_TO_PX)))
+}
+
+let resizeObserver = null
+onMounted(() => {
+  fitToWidth()
+  if (typeof ResizeObserver !== 'undefined' && scrollEl.value) {
+    resizeObserver = new ResizeObserver(() => {
+      // Só reajusta sozinho se o usuário não mexeu no zoom manualmente
+      if (!userZoomed.value) fitToWidth()
+    })
+    resizeObserver.observe(scrollEl.value)
+  }
+})
+onBeforeUnmount(() => resizeObserver?.disconnect())
+
+// Trocar papel/orientação muda a largura da folha: reajusta se o zoom ainda é automático
+watch(sheetWidthMm, () => { if (!userZoomed.value) fitToWidth() })
+
 const dynamicStyles = computed(() => {
   let columns = props.settings.itemsPerPage === 'custom' ? props.snacks.length : props.settings.itemsPerPage
   if (columns === 0) columns = 1
 
   return {
+    width: `${sheetWidthMm.value}mm`,
+    height: `${sheetHeightMm.value}mm`,
+    zoom: zoom.value,
     paddingTop: `${props.settings.margins.top}mm`,
     paddingBottom: `${props.settings.margins.bottom}mm`,
     paddingLeft: `${props.settings.margins.left}mm`,
@@ -130,7 +180,7 @@ const dynamicStyles = computed(() => {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: safe center;
   gap: 40px;
   /* Distância entre uma folha e outra */
   padding: 60px 20px;
@@ -182,6 +232,8 @@ const dynamicStyles = computed(() => {
 }
 
 .zoom-level {
+  background: transparent;
+  cursor: pointer;
   color: #ccc;
   font-size: 0.7rem;
   padding: 8px 4px;
@@ -195,20 +247,9 @@ const dynamicStyles = computed(() => {
   background-color: #ffffff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   position: relative;
-  width: 100%;
-  max-width: 800px;
   box-sizing: border-box;
-  transition: all 0.3s ease;
   flex-shrink: 0;
-  /* Impede a folha de ser esmagada */
-}
-
-.paper-sheet.landscape {
-  aspect-ratio: 1.414 / 1;
-}
-
-.paper-sheet.portrait {
-  aspect-ratio: 1 / 1.414;
+  /* Impede a folha de ser esmagada; largura/altura (mm) e zoom vêm do estilo dinâmico */
 }
 
 /* Grid Injetado Dinamicamente */
