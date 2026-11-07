@@ -119,8 +119,8 @@ button {
     display: flex;
     gap: 20px;
     background-color: var(--bg);
-    color: #ffffff;
-    padding: 20px;
+    color: var(--text);
+    padding: 12px 20px;
     box-sizing: border-box;
     font-family: var(--font);
 }
@@ -129,7 +129,7 @@ button {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 320px;
+    width: 360px;
     flex-shrink: 0;
     min-height: 0;
 }
@@ -150,14 +150,14 @@ button {
 .section-title {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #a0a0a0;
+    color: var(--text-muted);
     margin: 0;
     text-transform: uppercase;
 }
 
 .section-subtitle {
     font-size: 0.7rem;
-    color: #666;
+    color: var(--text-faint);
     margin: 0 0 8px 0;
 }
 
@@ -174,20 +174,20 @@ button {
     flex-grow: 1;
     background: transparent;
     border: none;
-    color: white;
+    color: var(--text);
     padding: 8px;
     outline: none;
 }
 
 .icon-btn {
     border: none;
-    color: #888;
+    color: var(--text-muted);
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .icon-btn:hover {
-    color: #fff;
+    color: var(--text);
 }
 
 /* Lista de ingredientes da sidebar */
@@ -204,12 +204,12 @@ button {
 }
 
 .ingredients-list::-webkit-scrollbar-thumb {
-    background: #333;
+    background: var(--border);
     border-radius: 4px;
 }
 
 .empty-list-msg {
-    color: #555;
+    color: var(--text-faint);
     font-size: 0.8rem;
     text-align: center;
     padding: 20px 0;
@@ -233,8 +233,8 @@ button {
 
 .ghost-item {
     opacity: 0.5;
-    background-color: #222;
-    border: 1px dashed #666;
+    background-color: var(--border);
+    border: 1px dashed var(--border-strong);
 }
 
 .ingredient-main-row {
@@ -256,14 +256,14 @@ button {
 .index {
     font-size: 9px;
     font-weight: 800;
-    color: #fb923c;
+    color: var(--accent);
     min-width: 18px;
 }
 
 .name {
     font-size: 10px;
     font-weight: 800;
-    color: #e5e5e5;
+    color: var(--text);
     text-transform: uppercase;
 }
 
@@ -281,7 +281,7 @@ button {
 .btn-observation {
     margin-right: 6px;
     color: #cc3333;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 6px 8px;
     display: flex;
@@ -292,13 +292,13 @@ button {
 }
 
 .btn-observation:hover {
-    background-color: #333;
+    background-color: var(--border);
     border-color: #cc3333;
 }
 
 .btn-observation.is-open {
     background-color: #cc3333;
-    color: #ffffff;
+    color: var(--text);
     border-color: #cc3333;
     margin-right: 12px;
 }
@@ -307,20 +307,20 @@ button {
     width: 45px;
     height: 100%;
     border: none;
-    color: #777;
+    color: var(--text-faint);
     font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
-    border-left: 1px solid #2a2a2a;
-    background-color: #161616;
+    border-left: 1px solid var(--border);
+    background-color: var(--bg);
 }
 
 .btn-delete-full:hover {
     color: #cc3333;
-    background-color: #111;
+    background-color: var(--bg);
 }
 
 .ingredient-obs-row {
@@ -328,8 +328,8 @@ button {
     flex-direction: column;
     gap: 8px;
     padding: 12px;
-    background-color: #161616;
-    border-top: 1px solid #2a2a2a;
+    background-color: var(--bg);
+    border-top: 1px solid var(--border);
     cursor: default;
 }
 
@@ -342,7 +342,7 @@ button {
 
 .obs-label {
     font-size: 0.65rem;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -350,9 +350,9 @@ button {
 
 .obs-textarea {
     width: 100%;
-    background-color: #111111;
-    color: #e5e5e5;
-    border: 1px solid #333;
+    background-color: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 8px 10px;
     font-family: inherit;
@@ -365,13 +365,13 @@ button {
 }
 
 .obs-textarea:focus {
-    border-color: #fb923c;
+    border-color: var(--accent);
 }
 
 .btn-close-obs {
     align-self: flex-end;
-    background-color: #2a2a2a;
-    color: #e5e5e5;
+    background-color: var(--border);
+    color: var(--text);
     border: none;
     border-radius: 4px;
     padding: 6px 12px;
@@ -382,8 +382,8 @@ button {
 }
 
 .btn-close-obs:hover {
-    background-color: #fb923c;
-    color: #fff;
+    background-color: var(--accent);
+    color: var(--on-accent);
 }
 
 /* =========================================
@@ -398,25 +398,25 @@ button {
     background-color: var(--surface);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 20px;
+    padding: 12px;
     overflow: hidden;
 }
 
 .canvas-area {
     position: relative;
     width: 100%;
-    max-width: 380px; 
+    max-width: 420px; 
     height: 100%;
     display: flex;
     flex-direction: column;
-    padding: 15px 12px;
+    padding: 12px 14px;
     box-sizing: border-box;
     overflow: hidden; /* Mantém tudo dentro do container branco */
 }
 
 .active-column {
     background: #fffaf7; 
-    box-shadow: inset 0 0 0 2px #f38b41, 0 4px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .edit-badge {
@@ -425,7 +425,7 @@ button {
     right: 12px;
     font-size: 9px;
     font-weight: 900;
-    color: #f38b41;
+    color: var(--accent);
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
@@ -435,7 +435,7 @@ button {
     font-size: 15px;
     font-weight: 900;
     text-align: center;
-    border-bottom: 2px solid #f38b41; 
+    border-bottom: 2px solid var(--accent); 
     padding-bottom: 12px;
     margin-top: 6px;
     margin-bottom: 8px;
@@ -481,12 +481,12 @@ button {
     justify-content: flex-start;
     flex: 1; /* MÁGICA: Faz o item crescer ou encolher para preencher o espaço */
     min-height: 0; /* MÁGICA 2: Permite que o item encolha infinitamente sem quebrar o layout */
-    max-height: 70px; /* Trava o tamanho máximo para não ficarem gigantes se houver apenas 2 itens */
+    max-height: 84px; /* Trava o tamanho máximo para não ficarem gigantes se houver apenas 2 itens */
     width: 100%;
 }
 
 .ingredient-img-canvas {
-    max-width: 120px;
+    max-width: 150px;
     height: 100%; /* A imagem vai acompanhar a altura "espremida" do item */
     width: auto;
     object-fit: contain;
@@ -504,7 +504,7 @@ button {
 }
 
 .layer-name {
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 900;
     color: #374151; 
     text-transform: uppercase;
@@ -514,7 +514,7 @@ button {
 }
 
 .layer-obs {
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 600;
     color: #cc3333;
     font-style: italic;

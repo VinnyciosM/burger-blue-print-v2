@@ -49,6 +49,7 @@
       <div class="sidebar-content">
         <PrintSettingsSidebar 
           v-show="printTab === 'settings'" 
+          :snackCount="snacks.length"
           @back-to-edit="isPrintMode = false" 
           @update-settings="updatePrintSettings" 
           @generate-pdf="printManual" 
@@ -85,6 +86,7 @@ import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
 import SnackList from './components/SnackList.vue';
 import NavBar from './components/NavBar.vue';
 import { slugify, resolveImage } from './ingredientImages.js'
+import { customImageFor } from './customIngredients.js'
 
 const STORAGE_KEYS = {
   snacks: 'manualburger_snacks',
@@ -102,7 +104,7 @@ const activeSnackId = ref(null)
 const printSettings = ref({
   paper: 'a4',
   orientation: 'landscape',
-  itemsPerPage: 4,
+  itemsPerPage: 3,
   margins: { top: 10, bottom: 10, left: 10, right: 10 },
   spacing: 8,
   showCutLines: true
@@ -134,7 +136,7 @@ onMounted(() => {
         for (const snack of parsed) {
           for (const ing of snack.ingredients || []) {
             ing.slug = ing.slug || slugify(ing.name)
-            ing.image = resolveImage(ing.slug)
+            ing.image = resolveImage(ing.slug) || customImageFor(ing.slug)
           }
         }
         snacks.value = parsed
@@ -264,7 +266,8 @@ const handleAddIngredient = (ingredient) => {
 
 <style>
 /* Tokens de design (usados em todos os componentes) */
-:root {
+:root,
+:root[data-theme="dark"] {
   --bg: #0e1113;
   --surface: #14181b;
   --surface-2: #181d21;
@@ -273,10 +276,27 @@ const handleAddIngredient = (ingredient) => {
   --text: #f1f3f4;
   --text-muted: #9aa3a9;
   --text-faint: #69737a;
+  --canvas-bg: #20252a;
   --accent: #f38b41;
+  --accent-hover: #d17530;
   --accent-soft: rgba(243, 139, 65, 0.12);
   --accent-border: rgba(243, 139, 65, 0.35);
+  --on-accent: #1a1109;
   --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --border: #e1e4e8;
+  --border-strong: #c5cbd3;
+  --text: #1c2127;
+  --text-muted: #566069;
+  --text-faint: #8a939c;
+  --canvas-bg: #d8d8dd;
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -322,20 +342,20 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: #121212;
-  border-left: 1px solid #222;
+  background-color: var(--surface);
+  border-left: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .sidebar-global-header {
   padding: 20px 20px 10px 20px;
-  background-color: #1a1a1a;
+  background-color: var(--surface);
 }
 
 .btn-back-global {
   background: transparent;
-  border: 1px solid #333;
-  color: #ccc;
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -349,24 +369,24 @@ body {
 }
 
 .btn-back-global:hover {
-  background: #2a2a2a;
-  color: #fff;
-  border-color: #555;
+  background: var(--border);
+  color: var(--text);
+  border-color: var(--border-strong);
 }
 
 .sidebar-tabs {
   display: flex;
-  background-color: #1a1a1a;
+  background-color: var(--surface);
   padding: 0 20px;
   gap: 8px;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--border);
 }
 
 .tab-btn {
   flex: 1;
   background-color: transparent;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   padding: 12px 0;
   font-size: 0.8rem;
   font-weight: 700;
@@ -381,12 +401,12 @@ body {
 }
 
 .tab-btn:hover {
-  color: #ccc;
+  color: var(--text);
 }
 
 .tab-btn.active {
-  color: #f38b41;
-  border-bottom-color: #f38b41;
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .sidebar-content {
@@ -434,15 +454,15 @@ body {
   background: var(--accent);
   border: none;
   border-radius: 8px;
-  color: #1a1109;
+  color: var(--on-accent);
   font-weight: 800;
   cursor: pointer;
 }
 
-.toast-enter-active, .toast-leave-active { transition: opacity 0.2s, transform 0.2s; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 10px); }
+.toast-enter-active, .toast-leave-active { transition: opacity 0.2s, transform 0.2s;}
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 10px);}
 
-.order-panel { display: flex; flex-direction: column; padding: 0 20px 20px; }
+.order-panel { display: flex; flex-direction: column; padding: 0 20px 20px;}
 
 /* =========================================
    IMPRESSÃO / PDF — apenas as folhas do manual

@@ -18,20 +18,16 @@
       <div v-for="(pageSnacks, pageIndex) in pages" :key="pageIndex" class="paper-sheet" :class="[settings.orientation, { 'last-sheet': pageIndex === pages.length - 1 }]"
         :style="dynamicStyles">
 
-        <!-- Grid de Corte -->
+        <!-- Linha de cartões: 1 a 3 lanches por folha, sempre centralizados -->
         <div class="cut-lines-grid" :class="{ 'show-cutlines': settings.showCutLines }">
 
-          <!-- Renderiza APENAS os lanches que pertencem a esta folha específica -->
-          <div v-for="(snack, localIndex) in pageSnacks" :key="snack.id" class="snack-preview-card">
+          <!-- Cada cartão é igual ao canvas da tela "Montar lanches" e ocupa 1/3 da largura útil da folha -->
+          <div v-for="snack in pageSnacks" :key="snack.id" class="snack-preview-card">
 
-            <div class="card-header">
-              <!-- Calcula o número geral do lanche para não zerar a cada página -->
-              <span class="snack-number">{{ String(getGlobalIndex(pageIndex, localIndex)).padStart(2, '0') }}</span>
-              <h4 class="snack-name">{{ snack.name }}</h4>
-            </div>
+            <h4 class="snack-name">{{ snack.name }}</h4>
 
             <div class="card-body">
-              <div class="ingredients-list-print">
+              <div v-if="snack.ingredients.length" class="ingredients-list-print">
                 <div v-for="item in snack.ingredients" :key="item.id" class="ingredient-print-item">
                   <img v-if="item.image" :src="item.image" class="print-item-img" />
                   <div class="print-item-text">
@@ -39,10 +35,8 @@
                     <span v-if="item.obs" class="print-item-obs">{{ item.obs }}</span>
                   </div>
                 </div>
-                <div v-if="snack.ingredients.length === 0" class="empty-snack">
-                  Sem ingredientes.
-                </div>
               </div>
+              <span v-else class="empty-snack">VAZIO</span>
             </div>
 
           </div>
@@ -76,27 +70,20 @@ const props = defineProps({
   }
 })
 
-// MÁGICA DO SCROLL: Agrupa os lanches em "Páginas" baseadas na configuração
-const pages = computed(() => {
-  if (props.settings.itemsPerPage === 'custom') {
-    return [props.snacks] // Se for personalizado, joga tudo numa folha só
-  }
-
-  const itemsPerPage = props.settings.itemsPerPage
-  const result = []
-
-  for (let i = 0; i < props.snacks.length; i += itemsPerPage) {
-    result.push(props.snacks.slice(i, i + itemsPerPage))
-  }
-
-  return result.length ? result : [[]] // Garante que pelo menos 1 folha em branco apareça
+// Agrupa os lanches em folhas: no máximo 3 por folha (cada cartão ocupa 1/3 da largura útil)
+const MAX_PER_SHEET = 3
+const perSheet = computed(() => {
+  const n = Number(props.settings.itemsPerPage)
+  return Math.min(MAX_PER_SHEET, Math.max(1, Number.isFinite(n) ? n : MAX_PER_SHEET))
 })
 
-// Calcula o número real do lanche na sequência (01, 02, 03) ignorando a quebra de página
-const getGlobalIndex = (pageIndex, localIndex) => {
-  if (props.settings.itemsPerPage === 'custom') return localIndex + 1
-  return (pageIndex * props.settings.itemsPerPage) + localIndex + 1
-}
+const pages = computed(() => {
+  const result = []
+  for (let i = 0; i < props.snacks.length; i += perSheet.value) {
+    result.push(props.snacks.slice(i, i + perSheet.value))
+  }
+  return result.length ? result : [[]] // Garante que pelo menos 1 folha em branco apareça
+})
 
 // Tamanhos reais de papel (mm) — a folha é desenhada em tamanho real e o zoom só escala a visualização,
 // assim a pré-visualização é idêntica ao PDF.
@@ -143,20 +130,22 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 watch(sheetWidthMm, () => { if (!userZoomed.value) fitToWidth() })
 
 const dynamicStyles = computed(() => {
-  let columns = props.settings.itemsPerPage === 'custom' ? props.snacks.length : props.settings.itemsPerPage
-  if (columns === 0) columns = 1
+  const m = props.settings.margins
+  const gap = Number(props.settings.spacing) || 0
+  const inner = sheetWidthMm.value - (Number(m.left) || 0) - (Number(m.right) || 0)
+  // Largura de cada cartão = 1/3 da largura útil (já descontado o espaço entre cartões)
+  const slot = Math.max(10, (inner - gap * (MAX_PER_SHEET - 1)) / MAX_PER_SHEET)
 
   return {
     width: `${sheetWidthMm.value}mm`,
     height: `${sheetHeightMm.value}mm`,
     zoom: zoom.value,
-    paddingTop: `${props.settings.margins.top}mm`,
-    paddingBottom: `${props.settings.margins.bottom}mm`,
-    paddingLeft: `${props.settings.margins.left}mm`,
-    paddingRight: `${props.settings.margins.right}mm`,
-    '--grid-columns': `repeat(${columns}, 1fr)`,
-    '--grid-rows': '1fr', // Mantendo apenas 1 linha como combinamos antes
-    '--grid-gap': `${props.settings.spacing}mm`
+    paddingTop: `${m.top}mm`,
+    paddingBottom: `${m.bottom}mm`,
+    paddingLeft: `${m.left}mm`,
+    paddingRight: `${m.right}mm`,
+    '--slot-w': `${slot}mm`,
+    '--grid-gap': `${gap}mm`
   }
 })
 </script>
@@ -166,7 +155,7 @@ const dynamicStyles = computed(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  background-color: #d8d8dd;
+  background-color: var(--canvas-bg);
   flex-grow: 1;
   overflow: hidden;
   /* Odiamos scroll duplo, então o wrapper não tem scroll */
@@ -252,108 +241,118 @@ const dynamicStyles = computed(() => {
   /* Impede a folha de ser esmagada; largura/altura (mm) e zoom vêm do estilo dinâmico */
 }
 
-/* Grid Injetado Dinamicamente */
+/* Linha de cartões centralizada: 1, 2 ou 3 lanches mantêm sempre o mesmo tamanho (1/3 da largura útil) */
 .cut-lines-grid {
   width: 100%;
   height: 100%;
-  display: grid;
-  grid-template-columns: var(--grid-columns);
-  grid-template-rows: var(--grid-rows);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
   gap: var(--grid-gap);
-  position: relative;
 }
 
-.cut-lines-grid.show-cutlines .snack-preview-card {
-  border: 1px dashed #ccc;
-}
-
+/* Cartão = mesmo visual do canvas da tela "Montar lanches" */
 .snack-preview-card {
-  border: 1px solid transparent;
-  padding: 24px;
+  flex: 0 0 var(--slot-w);
+  width: var(--slot-w);
+  min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  background-color: #fff;
+  padding: 0 6px;
+  background: transparent;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 2px solid #f38b41;
-  padding-bottom: 8px;
-}
-
-.snack-number {
-  background: #111;
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 0.8rem;
+/* Serrilhado (pontilhado) mostrando a borda de cada guia, para recortar */
+.cut-lines-grid.show-cutlines .snack-preview-card {
+  outline: 1px dashed #8a8a8a;
+  outline-offset: -1px;
 }
 
 .snack-name {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #111;
+  flex-shrink: 0;
+  margin: 4px 0 10px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f38b41;
+  font-size: 19px;
+  line-height: 1.15;
   font-weight: 900;
-  flex-grow: 1;
+  text-align: center;
   text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: #111827;
+  overflow-wrap: anywhere;
 }
 
 .card-body {
+  flex: 1;
+  min-height: 0;
   display: flex;
-  flex-grow: 1;
-  gap: 16px;
-  align-items: flex-start;
+  flex-direction: column;
   overflow: hidden;
 }
 
+/* Poucos itens ficam grandes (até o limite); muitos itens encolhem para caber */
 .ingredients-list-print {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  justify-content: flex-start;
+  gap: 2px;
+  height: 100%;
+  min-height: 0;
 }
 
 .ingredient-print-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 104px;
+  width: 100%;
 }
 
 .print-item-img {
-  width: 20px;
-  height: 20px;
+  max-width: 48%;
+  height: 100%;
+  width: auto;
   object-fit: contain;
+  mix-blend-mode: multiply;
+  flex-shrink: 1;
 }
 
 .print-item-text {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  padding-left: 14px;
 }
 
 .print-item-name {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #333;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #374151;
+  overflow-wrap: anywhere;
 }
 
 .print-item-obs {
-  font-size: 0.65rem;
-  color: #cc3333;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
   font-style: italic;
+  color: #cc3333;
 }
 
 .empty-snack {
-  font-size: 0.8rem;
-  color: #888;
-  font-style: italic;
+  margin: auto;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #d1d5db;
 }
 
 /* Controles Inferiores */

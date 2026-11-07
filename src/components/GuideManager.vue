@@ -29,7 +29,7 @@ defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'd
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 340px;
+  width: 300px;
   height: 100%;
   padding: 18px;
   background: var(--surface);
@@ -56,7 +56,7 @@ defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'd
   background: var(--accent);
   border: none;
   border-radius: 10px;
-  color: #1a1109;
+  color: var(--on-accent);
   font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;

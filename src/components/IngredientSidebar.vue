@@ -4,6 +4,9 @@
       <div class="sidebar-header">
         <h2>Ingredientes</h2>
         <span class="total">{{ totalItems }} itens</span>
+        <button class="lib-btn" title="Ver, editar e apagar todos os ingredientes" @click="showLibrary = true">
+          📚 Biblioteca
+        </button>
       </div>
 
       <div class="search">
@@ -47,68 +50,41 @@
               <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" loading="lazy" />
               <span v-else class="no-image">🍔</span>
               <span class="add-badge">+</span>
+              <span v-if="ingredient.custom" class="mine-badge" title="Ingrediente seu">meu</span>
             </span>
             <span class="ingredient-name">{{ ingredient.name }}</span>
           </button>
         </div>
       </section>
     </div>
+
+    <LibraryModal v-if="showLibrary" @close="showLibrary = false" />
   </aside>
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
-// Importa o arquivo JSON diretamente (o Vite faz o parse automático!)
-import flatData from '../ingredientes.json'
-import { slugify, resolveImagePath } from '../ingredientImages.js'
+import { computed, ref } from 'vue'
+import { libraryItems, labelFor } from '../customIngredients.js'
+import LibraryModal from './LibraryModal.vue'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
 const activeCategory = ref(null)
+const showLibrary = ref(false)
+const isLoading = ref(false)
 
-// Estados Reativos
-const categories = ref([])
-const isLoading = ref(true)
-
-const CATEGORY_LABELS = {
-  paes: 'Pães',
-  carnes: 'Carnes',
-  queijos: 'Queijos',
-  vegetais: 'Vegetais',
-  frutas: 'Frutas',
-  molhos: 'Molhos',
-  frios: 'Frios',
-  acompanhamentos: 'Acompanhamentos',
-  outros: 'Outros'
-}
-
-const labelFor = (id) => CATEGORY_LABELS[id] || id.charAt(0).toUpperCase() + id.slice(1)
-
-onMounted(() => {
-  try {
-    // Agrupa a lista plana em Categorias
-    categories.value = flatData.reduce((acc, curr) => {
-      let category = acc.find(c => c.id === curr.categoria)
-
-      if (!category) {
-        category = { id: curr.categoria, name: labelFor(curr.categoria), items: [] }
-        acc.push(category)
-      }
-
-      category.items.push({
-        id: curr.id,
-        name: curr.nome,
-        slug: slugify(curr.nome),
-        image: resolveImagePath(curr.imagem)
-      })
-
-      return acc
-    }, [])
-  } catch (error) {
-    console.error('Erro ao processar ingredientes:', error)
-  } finally {
-    isLoading.value = false
+// Biblioteca (arquivo + edições + cadastrados) agrupada por categoria
+const categories = computed(() => {
+  const groups = []
+  for (const item of libraryItems.value) {
+    let group = groups.find(c => c.id === item.categoria)
+    if (!group) {
+      group = { id: item.categoria, name: labelFor(item.categoria), items: [] }
+      groups.push(group)
+    }
+    group.items.push({ id: item.id, name: item.nome, slug: item.slug, image: item.imagem, custom: item.custom })
   }
+  return groups
 })
 
 const totalItems = computed(() => categories.value.reduce((sum, c) => sum + c.items.length, 0))
@@ -151,8 +127,8 @@ function onDragStart(ingredient, event) {
 
 .sidebar-header {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
@@ -163,8 +139,40 @@ function onDragStart(ingredient, event) {
 }
 
 .total {
+  margin-right: auto;
   font-size: 0.72rem;
   color: var(--text-faint);
+}
+
+.lib-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.lib-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mine-badge {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .search {
@@ -345,7 +353,7 @@ function onDragStart(ingredient, event) {
   place-items: center;
   border-radius: 50%;
   background: var(--accent);
-  color: #1a1109;
+  color: var(--on-accent);
   font-size: 0.9rem;
   font-weight: 800;
   line-height: 1;

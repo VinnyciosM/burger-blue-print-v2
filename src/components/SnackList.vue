@@ -178,7 +178,7 @@ const restoreOrder = () => {
 .icon-btn.active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #1a1109;
+  color: var(--on-accent);
 }
 
 .sort-card {
@@ -223,7 +223,7 @@ const restoreOrder = () => {
 .btn-small.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #1a1109;
+  color: var(--on-accent);
 }
 
 .sort-footer {

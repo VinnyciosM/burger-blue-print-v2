@@ -17,9 +17,8 @@
         <label class="setting-label">Papel</label>
         <div class="select-wrapper">
           <span class="select-icon">📄</span>
-          <select v-model="settings.paper" class="dark-select">
+          <select v-model="settings.paper" class="dark-select" disabled title="Por enquanto apenas A4">
             <option value="a4">A4 (210 x 297 mm)</option>
-            <option value="letter">Carta (216 x 279 mm)</option>
           </select>
         </div>
       </div>
@@ -50,16 +49,18 @@
         <label class="setting-label">Guias por folha</label>
         <div class="grid-buttons">
           <button 
-            v-for="num in [1, 2, 3, 4]" 
+            v-for="num in [1, 2, 3]" 
             :key="num"
             class="grid-btn"
-            :class="{ active: settings.itemsPerPage === num }"
+            :class="{ active: settings.itemsPerPage === num, disabled: isBlocked(num) }"
+            :disabled="isBlocked(num)"
+            :title="isBlocked(num) ? 'Em retrato só cabem 2 guias por folha' : ''"
             @click="settings.itemsPerPage = num"
           >
             {{ num }}
           </button>
         </div>
-        <p class="setting-help">Escolha quantos guias serão impressos em cada folha.</p>
+        <p class="setting-help">{{ snackCount }} {{ snackCount === 1 ? 'lanche' : 'lanches' }} em {{ sheetCount }} {{ sheetCount === 1 ? 'folha' : 'folhas' }}. Cada guia ocupa 1/3 da folha e fica centralizado.</p>
       </div>
 
       <!-- Margens -->
@@ -104,8 +105,8 @@
       <!-- Linhas de corte -->
       <div class="setting-group switch-group">
         <div class="switch-texts">
-          <label class="setting-label">Linhas de corte</label>
-          <p class="setting-help">Exibir linhas pontilhadas para corte</p>
+          <label class="setting-label">Serrilhado de corte</label>
+          <p class="setting-help">Mostra a borda pontilhada de cada guia</p>
         </div>
         <label class="switch">
           <input type="checkbox" v-model="settings.showCutLines">
@@ -131,14 +132,18 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch, computed } from 'vue'
+
+const props = defineProps({
+  snackCount: { type: Number, default: 0 }
+})
 
 const emit = defineEmits(['update-settings', 'back-to-edit', 'generate-pdf']) //[cite: 6]
 
 const settings = reactive({
   paper: 'a4',
   orientation: 'landscape',
-  itemsPerPage: 4,
+  itemsPerPage: 3,
   margins: {
     top: 10,
     bottom: 10,
@@ -147,6 +152,27 @@ const settings = reactive({
   },
   spacing: 8,
   showCutLines: true
+})
+
+const sheetCount = computed(() => Math.max(1, Math.ceil(props.snackCount / Number(settings.itemsPerPage || 3))))
+
+// Em retrato só cabem 2 guias por folha: o botão "3" fica bloqueado
+const isBlocked = (num) => num === 3 && settings.orientation === 'portrait'
+
+// Cada orientação guarda as suas próprias margens: ao trocar, as margens da outra são restauradas
+const MARGINS = {
+  landscape: { top: 10, bottom: 10, left: 10, right: 10 },
+  portrait: { top: 15, bottom: 15, left: 12, right: 12 }
+}
+const savedMargins = { landscape: { ...MARGINS.landscape }, portrait: { ...MARGINS.portrait } }
+
+watch(() => settings.orientation, (next, previous) => {
+  savedMargins[previous] = { ...settings.margins }
+  Object.assign(settings.margins, savedMargins[next])
+})
+
+watch(() => settings.orientation, (orientation) => {
+  if (orientation === 'portrait' && Number(settings.itemsPerPage) > 2) settings.itemsPerPage = 2
 })
 
 watch(settings, (newSettings) => {
@@ -162,7 +188,7 @@ watch(settings, (newSettings) => {
   width: 350px;
   height: 100%;
   background-color: var(--surface);
-  color: #ffffff;
+  color: var(--text);
   padding: 24px 20px;
   box-sizing: border-box;
   font-family: var(--font);
@@ -170,13 +196,13 @@ watch(settings, (newSettings) => {
   overflow-y: auto;
 }
 
-.print-settings-sidebar::-webkit-scrollbar { width: 6px; }
-.print-settings-sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+.print-settings-sidebar::-webkit-scrollbar { width: 6px;}
+.print-settings-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px;}
 
 .btn-back {
   background: transparent;
-  border: 1px solid #333;
-  color: #ccc;
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -191,17 +217,17 @@ watch(settings, (newSettings) => {
 }
 
 .btn-back:hover {
-  background: #1e1e1e;
-  color: #fff;
-  border-color: #555;
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-strong);
 }
 
-.sidebar-header { margin-bottom: 24px; }
+.sidebar-header { margin-bottom: 24px;}
 
 .sidebar-title {
   font-size: 0.85rem;
   font-weight: 800;
-  color: #e5e5e5;
+  color: var(--text);
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -223,12 +249,12 @@ watch(settings, (newSettings) => {
 .setting-label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #e5e5e5;
+  color: var(--text);
 }
 
 .setting-help {
   font-size: 0.7rem;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.4;
 }
@@ -237,19 +263,19 @@ watch(settings, (newSettings) => {
   position: relative;
   display: flex;
   align-items: center;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0 12px;
 }
 
-.select-icon { margin-right: 8px; font-size: 1rem; }
+.select-icon { margin-right: 8px; font-size: 1rem;}
 
 .dark-select {
   flex-grow: 1;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text);
   padding: 12px 0;
   outline: none;
   font-size: 0.85rem;
@@ -260,17 +286,17 @@ watch(settings, (newSettings) => {
 .toggle-group {
   display: flex;
   gap: 0;
-  border: 1px solid #333;
+  border: 1px solid var(--border);
   border-radius: 6px;
   overflow: hidden;
 }
 
 .toggle-btn {
   flex: 1;
-  background-color: #1e1e1e;
+  background-color: var(--surface);
   border: none;
-  border-right: 1px solid #333;
-  color: #888;
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
   padding: 10px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -282,31 +308,30 @@ watch(settings, (newSettings) => {
   gap: 6px;
 }
 
-.toggle-btn:last-child { border-right: none; }
+.toggle-btn:last-child { border-right: none;}
 .toggle-btn.active {
-  background-color: #1a1a1a;
-  color: #f38b41;
-  border-bottom: 2px solid #f38b41;
+  background-color: var(--surface);
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
 }
 
-.grid-buttons { display: flex; gap: 8px; }
+.grid-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;}
 
 .grid-btn {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
-  color: #ccc;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   padding: 10px 0;
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  flex: 1;
   text-align: center;
 }
 
-.grid-btn:last-child { flex: 2; }
-.grid-btn.active { border-color: #f38b41; color: #f38b41; }
+.grid-btn:disabled, .grid-btn.disabled { opacity: 0.35; cursor: not-allowed; }
+.grid-btn.active { border-color: var(--accent); color: var(--accent);}
 
 .margins-grid {
   display: grid;
@@ -320,14 +345,14 @@ watch(settings, (newSettings) => {
   gap: 6px;
 }
 
-.margin-input label { font-size: 0.65rem; color: #888; }
+.margin-input label { font-size: 0.65rem; color: var(--text-muted);}
 
 .dark-input {
   width: 100%;
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  color: #fff;
+  color: var(--text);
   padding: 10px 8px;
   box-sizing: border-box;
   font-size: 0.85rem;
@@ -335,7 +360,7 @@ watch(settings, (newSettings) => {
   outline: none;
 }
 
-.dark-input:focus { border-color: #f38b41; }
+.dark-input:focus { border-color: var(--accent);}
 
 .slider-group {
   display: flex;
@@ -348,7 +373,7 @@ watch(settings, (newSettings) => {
   flex-grow: 1;
   -webkit-appearance: none;
   height: 4px;
-  background: #333;
+  background: var(--border);
   border-radius: 2px;
   outline: none;
 }
@@ -359,19 +384,19 @@ watch(settings, (newSettings) => {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #f38b41;
+  background: var(--accent);
   cursor: pointer;
-  border: 2px solid #121212;
+  border: 2px solid var(--surface);
 }
 
 .slider-value-box {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px 16px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--text);
   min-width: 24px;
   text-align: center;
 }
@@ -397,13 +422,13 @@ watch(settings, (newSettings) => {
   flex-shrink: 0;
 }
 
-.switch input { opacity: 0; width: 0; height: 0; }
+.switch input { opacity: 0; width: 0; height: 0;}
 
 .slider.round {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #333;
+  background-color: var(--border);
   transition: .4s;
   border-radius: 24px;
 }
@@ -413,12 +438,12 @@ watch(settings, (newSettings) => {
   content: "";
   height: 18px; width: 18px;
   left: 3px; bottom: 3px;
-  background-color: #aaa;
+  background-color: var(--text-faint);
   transition: .4s;
   border-radius: 50%;
 }
 
-input:checked + .slider.round { background-color: #f38b41; }
+input:checked + .slider.round { background-color: var(--accent);}
 input:checked + .slider.round:before {
   transform: translateX(20px);
   background-color: #fff;
@@ -432,8 +457,8 @@ input:checked + .slider.round:before {
 }
 
 .btn-generate-pdf {
-  background-color: #f38b41;
-  color: #121212;
+  background-color: var(--accent);
+  color: var(--on-accent);
   border: none;
   padding: 14px;
   border-radius: 6px;
@@ -449,8 +474,8 @@ input:checked + .slider.round:before {
   transition: background-color 0.2s, transform 0.1s;
 }
 
-.btn-generate-pdf:hover { background-color: #d17530; }
-.btn-generate-pdf:active { transform: scale(0.98); }
+.btn-generate-pdf:hover { background-color: var(--accent-hover);}
+.btn-generate-pdf:active { transform: scale(0.98);}
 
 .info-box {
   display: flex;
@@ -458,12 +483,12 @@ input:checked + .slider.round:before {
   align-items: flex-start;
 }
 
-.info-icon { font-size: 1.1rem; }
+.info-icon { font-size: 1.1rem;}
 
 .info-box p {
   margin: 0;
   font-size: 0.7rem;
-  color: #888;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 </style>
