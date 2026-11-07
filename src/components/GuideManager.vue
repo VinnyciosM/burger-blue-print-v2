@@ -33,7 +33,9 @@ defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'd
   height: 100%;
   padding: 18px;
   background: var(--surface);
-  border-left: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
 }
 
 .print-cta {
@@ -53,11 +55,12 @@ defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'd
 
 .primary-btn {
   padding: 13px;
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent), var(--accent-hover));
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px var(--accent-soft), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
   color: var(--on-accent);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 800;
   cursor: pointer;
   transition: filter 0.15s, transform 0.1s;

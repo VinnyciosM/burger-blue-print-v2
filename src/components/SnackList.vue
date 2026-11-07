@@ -299,22 +299,24 @@ const restoreOrder = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 6px 8px 4px;
-  margin-bottom: 6px;
-  background: var(--bg);
+  padding: 10px 8px 10px 4px;
+  margin-bottom: 8px;
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
 .item:hover {
   border-color: var(--border-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 .item.active {
   border-color: var(--accent);
   background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .ghost {
@@ -331,10 +333,14 @@ const restoreOrder = () => {
 }
 
 .index {
-  min-width: 22px;
-  font-size: 0.68rem;
+  min-width: 26px;
+  padding: 2px 0;
+  text-align: center;
+  font-size: 0.66rem;
   font-weight: 800;
   color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
 }
 
 .info {

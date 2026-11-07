@@ -114,15 +114,19 @@ function onDragStart(ingredient, event) {
   flex-direction: column;
   min-height: 0;
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
   color: var(--text);
   font-family: var(--font);
 }
 
 .sidebar-top {
   flex-shrink: 0;
-  padding: 18px 18px 12px;
+  padding: 18px 18px 14px;
   border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
 }
 
 .sidebar-header {
@@ -134,21 +138,26 @@ function onDragStart(ingredient, event) {
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
+  letter-spacing: -0.2px;
 }
 
 .total {
   margin-right: auto;
-  font-size: 0.72rem;
-  color: var(--text-faint);
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg);
+  border-radius: 999px;
 }
 
 .lib-btn {
-  padding: 6px 12px;
-  background: transparent;
+  padding: 7px 13px;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 999px;
   color: var(--text);
   font-family: inherit;
   font-size: 0.75rem;
@@ -189,12 +198,12 @@ function onDragStart(ingredient, event) {
 
 .search input {
   width: 100%;
-  height: 38px;
+  height: 40px;
   box-sizing: border-box;
-  padding: 0 34px 0 36px;
+  padding: 0 34px 0 38px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   color: var(--text);
   font-size: 0.82rem;
   outline: none;
@@ -207,6 +216,7 @@ function onDragStart(ingredient, event) {
 
 .search input:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .search-clear {
@@ -250,9 +260,9 @@ function onDragStart(ingredient, event) {
 }
 
 .chip.active {
-  background: var(--accent-soft);
+  background: var(--accent);
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--on-accent);
 }
 
 .sidebar-scroll {
@@ -303,9 +313,9 @@ function onDragStart(ingredient, event) {
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: var(--bg);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   cursor: grab;
   font-family: inherit;
@@ -314,8 +324,8 @@ function onDragStart(ingredient, event) {
 
 .ingredient-card:hover {
   border-color: var(--accent);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3), 0 0 0 3px var(--accent-soft);
 }
 
 .ingredient-card:active {

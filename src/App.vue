@@ -65,6 +65,11 @@
     </aside>
   </div>
 
+  <!-- Marca d'água do criador (não aparece na impressão) -->
+  <a class="watermark" href="https://github.com/VinnyciosM" target="_blank" rel="noopener">
+    Feito por <strong>Vinnycios Medeiros</strong> · © {{ new Date().getFullYear() }} Todos os direitos reservados
+  </a>
+
   <!-- Aviso com "Desfazer" após excluir um lanche -->
   <Transition name="toast">
     <div v-if="lastDeleted" class="toast" role="status">
@@ -268,15 +273,19 @@ const handleAddIngredient = (ingredient) => {
 /* Tokens de design (usados em todos os componentes) */
 :root,
 :root[data-theme="dark"] {
-  --bg: #0e1113;
-  --surface: #14181b;
-  --surface-2: #181d21;
-  --border: #242a2f;
-  --border-strong: #38414a;
-  --text: #f1f3f4;
-  --text-muted: #9aa3a9;
-  --text-faint: #69737a;
-  --canvas-bg: #20252a;
+  --bg: #0a0c0f;
+  --surface: #12161a;
+  --surface-2: #181d22;
+  --border: #212830;
+  --border-strong: #35404b;
+  --text: #f3f5f7;
+  --text-muted: #9ba5ae;
+  --text-faint: #6b757e;
+  --canvas-bg: #1b2026;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 12px 32px rgba(0, 0, 0, 0.35);
+  --glow-opacity: 1;
   --accent: #f38b41;
   --accent-hover: #d17530;
   --accent-soft: rgba(243, 139, 65, 0.12);
@@ -287,15 +296,17 @@ const handleAddIngredient = (ingredient) => {
 }
 
 :root[data-theme="light"] {
-  --bg: #f3f4f6;
+  --bg: #eceff3;
   --surface: #ffffff;
-  --surface-2: #f6f7f9;
-  --border: #e1e4e8;
-  --border-strong: #c5cbd3;
-  --text: #1c2127;
-  --text-muted: #566069;
-  --text-faint: #8a939c;
-  --canvas-bg: #d8d8dd;
+  --surface-2: #f7f8fa;
+  --border: #e3e7ec;
+  --border-strong: #c9d0d8;
+  --text: #1a2028;
+  --text-muted: #55606b;
+  --text-faint: #8893a0;
+  --canvas-bg: #dfe3e8;
+  --shadow-panel: 0 1px 2px rgba(20, 30, 45, 0.05), 0 10px 28px rgba(20, 30, 45, 0.08);
+  --glow-opacity: 0.7;
   color-scheme: light;
 }
 
@@ -304,10 +315,24 @@ const handleAddIngredient = (ingredient) => {
 body {
   margin: 0;
   background-color: var(--bg);
+  /* brilho suave da cor principal no topo */
+  background-image: radial-gradient(900px 380px at 15% -80px, var(--accent-soft), transparent 70%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
+
+/* Foco visível e moderno em todo o app */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 
 .app-shell {
   display: flex;
@@ -316,9 +341,12 @@ body {
   width: 100vw;
 }
 
+/* Painéis flutuantes: cada coluna é um cartão com respiro entre eles */
 .app-container, .print-container {
   display: flex;
   flex: 1;
+  gap: 12px;
+  padding: 4px 12px 26px;
   min-height: 0;
   width: 100%;
 }
@@ -335,6 +363,12 @@ body {
 .print-canvas-area {
   flex: 1;
   min-width: 0; /* Garante que o canvas pode encolher se necessário */
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  /* grade de pontos discreta, como uma mesa de trabalho */
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 .unified-sidebar {
@@ -343,7 +377,10 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--surface);
-  border-left: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
   flex-shrink: 0;
 }
 
@@ -353,13 +390,13 @@ body {
 }
 
 .btn-back-global {
-  background: transparent;
+  background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -377,9 +414,12 @@ body {
 .sidebar-tabs {
   display: flex;
   background-color: var(--surface);
-  padding: 0 20px;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
+  margin: 6px 20px 0;
+  padding: 4px;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
 }
 
 .tab-btn {
@@ -387,12 +427,11 @@ body {
   background-color: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 12px 0;
+  padding: 8px 0;
   font-size: 0.8rem;
   font-weight: 700;
-  text-transform: uppercase;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-radius: 9px;
   transition: all 0.2s;
   display: flex;
   align-items: center;
@@ -405,8 +444,9 @@ body {
 }
 
 .tab-btn.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--border);
 }
 
 .sidebar-content {
@@ -431,6 +471,25 @@ body {
   display: none !important;
 }
 
+/* Marca d'água do criador */
+.watermark {
+  position: fixed;
+  right: 18px;
+  bottom: 6px;
+  z-index: 5;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--text-faint);
+  opacity: 0.7;
+  text-decoration: none;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.watermark strong { font-weight: 800; color: var(--text-muted); }
+
+.watermark:hover { opacity: 1; color: var(--accent); }
+
 /* Aviso de exclusão */
 .toast {
   position: fixed;
@@ -444,8 +503,9 @@ body {
   padding: 10px 14px 10px 18px;
   background: var(--surface-2);
   border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
   font-size: 0.82rem;
 }
 
@@ -474,7 +534,7 @@ body {
     background: #fff;
   }
 
-  .navbar, .unified-sidebar, .zoom-controls, .bottom-controls, .toast {
+  .navbar, .unified-sidebar, .zoom-controls, .bottom-controls, .toast, .watermark {
     display: none !important;
   }
 
@@ -487,6 +547,9 @@ body {
     padding: 0 !important;
     margin: 0 !important;
     background: #fff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 
   .paper-sheet {

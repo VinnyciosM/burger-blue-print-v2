@@ -52,8 +52,7 @@ defineEmits(['set-mode'])
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0 20px;
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
   font-family: var(--font);
 }
 
@@ -71,7 +70,8 @@ defineEmits(['set-mode'])
   font-size: 18px;
   background: var(--accent-soft);
   border: 1px solid var(--accent-border);
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px var(--accent-soft);
 }
 
 .brand {
@@ -102,16 +102,17 @@ defineEmits(['set-mode'])
   padding: 4px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-panel);
 }
 
 .nav-tab {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 16px;
+  padding: 8px 18px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   background: transparent;
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -125,8 +126,9 @@ defineEmits(['set-mode'])
 }
 
 .nav-tab.active {
-  background: var(--accent);
+  background: linear-gradient(180deg, var(--accent), var(--accent-hover));
   color: var(--on-accent);
+  box-shadow: 0 4px 14px var(--accent-soft);
 }
 
 .tab-step {

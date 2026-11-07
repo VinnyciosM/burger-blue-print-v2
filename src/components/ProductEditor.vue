@@ -118,9 +118,8 @@ button {
 .product-editor {
     display: flex;
     gap: 20px;
-    background-color: var(--bg);
+    gap: 12px;
     color: var(--text);
-    padding: 12px 20px;
     box-sizing: border-box;
     font-family: var(--font);
 }
@@ -132,6 +131,11 @@ button {
     width: 360px;
     flex-shrink: 0;
     min-height: 0;
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
 }
 
 .section-block {
@@ -164,10 +168,16 @@ button {
 .input-group {
     display: flex;
     align-items: center;
-    background-color: var(--surface);
-    border-radius: 10px;
+    background-color: var(--bg);
+    border-radius: 12px;
     padding: 4px 8px;
     border: 1px solid var(--border);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input-group:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .dark-input {
@@ -217,14 +227,20 @@ button {
 }
 
 .ingredient-item {
-    border-radius: 10px;
-    margin-bottom: 5px;
+    border-radius: 12px;
+    margin-bottom: 6px;
     display: flex;
     flex-direction: column;
-    background-color: var(--surface);
+    background-color: var(--surface-2);
     border: 1px solid var(--border);
     cursor: grab;
     overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ingredient-item:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
 .ingredient-item:active {
@@ -395,9 +411,13 @@ button {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
+    background-color: var(--surface);
+    /* mesa de trabalho pontilhada ao redor da guia */
+    background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+    background-size: 22px 22px;
     padding: 12px;
     overflow: hidden;
 }
@@ -416,7 +436,8 @@ button {
 
 .active-column {
     background: #fffaf7; 
-    box-shadow: inset 0 0 0 2px var(--accent), 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 2px var(--accent), 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
 .edit-badge {
