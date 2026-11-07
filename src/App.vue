@@ -5,11 +5,12 @@
   <div v-if="!isPrintMode" class="app-container">
     <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
     
-    <ProductEditor v-if="currentSnack" class="product-editor" :snack="currentSnack" :snackIndex="currentSnackIndex" />
+    <ProductEditor v-if="currentSnack" class="product-editor" :snack="currentSnack" :snackIndex="currentSnackIndex"
+      :snacks="snacks" @select-snack="selectSnack" @move-snack="moveSnack" @toggle-flag="toggleFlag" />
     
     <GuideManager class="guide-manager" v-model:snacks="snacks" :activeSnackId="activeSnackId"
       @open-print-mode="isPrintMode = true" @add-snack="createNewSnack" @select-snack="selectSnack"
-      @duplicate-snack="duplicateSnack" @delete-snack="deleteSnack" />
+      @duplicate-snack="duplicateSnack" @delete-snack="deleteSnack" @toggle-flag="toggleFlag" />
   </div>
 
   <div v-else class="print-container">
@@ -23,7 +24,7 @@
       <!-- Cabeçalho Fixo: Botão de Voltar -->
       <div class="sidebar-global-header">
         <button @click="isPrintMode = false" class="btn-back-global">
-          ← Voltar para edição
+          <Icon name="arrow-left" :size="14" /> Voltar para edição
         </button>
       </div>
 
@@ -34,14 +35,14 @@
           class="tab-btn" 
           :class="{ active: printTab === 'settings' }"
         >
-          ⚙️ Configurações
+          <Icon name="settings" :size="15" /> Configurações
         </button>
         <button 
           @click="printTab = 'order'" 
           class="tab-btn" 
           :class="{ active: printTab === 'order' }"
         >
-          📚 Lanches
+          <Icon name="layers" :size="15" /> Lanches
         </button>
       </div>
 
@@ -90,8 +91,10 @@ import PrintCanvas from './components/PrintCanvas.vue';
 import PrintSettingsSidebar from './components/PrintSettingsSidebar.vue';
 import SnackList from './components/SnackList.vue';
 import NavBar from './components/NavBar.vue';
+import Icon from './components/Icon.vue';
 import { slugify, resolveImage } from './ingredientImages.js'
 import { customImageFor } from './customIngredients.js'
+import { placeSnack, placeAll } from './workspace.js'
 
 const STORAGE_KEYS = {
   snacks: 'manualburger_snacks',
@@ -145,6 +148,7 @@ onMounted(() => {
           }
         }
         snacks.value = parsed
+        placeAll(snacks.value) // manuais antigos ganham posição na área de trabalho
         activeSnackId.value = savedActiveId ? parseInt(savedActiveId) : (snacks.value[0]?.id || null)
       }
     }
@@ -180,11 +184,9 @@ const uid = () => Date.now() * 1000 + (idCounter++ % 1000)
 
 const createNewSnack = () => {
   const newId = uid()
-  snacks.value.push({
-    id: newId,
-    name: `Novo Lanche`,
-    ingredients: []
-  })
+  const snack = { id: newId, name: `Novo Lanche`, ingredients: [] }
+  snacks.value.push(snack)
+  placeSnack(snacks.value[snacks.value.length - 1], snacks.value)
   activeSnackId.value = newId
   return newId
 }
@@ -203,8 +205,27 @@ const duplicateSnack = (id) => {
     name: `${original.name || 'Lanche'} (cópia)`
   }
   copy.ingredients.forEach(ing => { ing.id = uid() })
+  // A cópia nasce ao lado do original, sem herdar a posição exata
+  delete copy.x; delete copy.y
+  copy.locked = false
   snacks.value.splice(index + 1, 0, copy)
+  placeSnack(snacks.value[index + 1], snacks.value)
   activeSnackId.value = copy.id
+}
+
+// Muda a ordem do manual (a mesma ordem da lista e da impressão)
+const moveSnack = (id, delta) => {
+  const index = snacks.value.findIndex(s => s.id === id)
+  const target = index + delta
+  if (index === -1 || target < 0 || target >= snacks.value.length) return
+  const [snack] = snacks.value.splice(index, 1)
+  snacks.value.splice(target, 0, snack)
+}
+
+// Oculta ou bloqueia um manual na área de trabalho
+const toggleFlag = (id, key) => {
+  const snack = snacks.value.find(s => s.id === id)
+  if (snack && (key === 'hidden' || key === 'locked')) snack[key] = !snack[key]
 }
 
 // --- Exclusão com desfazer ---
@@ -311,6 +332,10 @@ const handleAddIngredient = (ingredient) => {
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+
+/* Botões com ícone SVG: ícone e texto alinhados */
+button:has(> .icon), a:has(> .icon) { display: inline-flex; align-items: center; gap: 6px; }
+button:has(> .icon:only-child) { justify-content: center; }
 
 body {
   margin: 0;

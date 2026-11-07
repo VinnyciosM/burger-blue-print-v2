@@ -3,7 +3,7 @@
     
     <!-- Botão de Voltar -->
     <button @click="$emit('back-to-edit')" class="btn-back">
-      ← Voltar para edição
+      <Icon name="arrow-left" :size="14" /> Voltar para edição
     </button>
 
     <header class="sidebar-header">
@@ -16,7 +16,7 @@
       <div class="setting-group">
         <label class="setting-label">Papel</label>
         <div class="select-wrapper">
-          <span class="select-icon">📄</span>
+          <span class="select-icon"><Icon name="portrait" :size="16" /></span>
           <select v-model="settings.paper" class="dark-select" disabled title="Por enquanto apenas A4">
             <option value="a4">A4 (210 x 297 mm)</option>
           </select>
@@ -32,14 +32,14 @@
             :class="{ active: settings.orientation === 'portrait' }"
             @click="settings.orientation = 'portrait'"
           >
-            📄 Retrato
+            <Icon name="portrait" :size="15" /> Retrato
           </button>
           <button 
             class="toggle-btn" 
             :class="{ active: settings.orientation === 'landscape' }"
             @click="settings.orientation = 'landscape'"
           >
-            🖺 Paisagem
+            <Icon name="landscape" :size="15" /> Paisagem
           </button>
         </div>
       </div>
@@ -119,11 +119,11 @@
     <!-- Rodapé -->
     <div class="sidebar-footer">
       <button @click="$emit('generate-pdf')" class="btn-generate-pdf">
-        📥 GERAR PDF
+        <Icon name="download" :size="16" /> GERAR PDF
       </button>
       
       <div class="info-box">
-        <span class="info-icon">ℹ️</span>
+        <span class="info-icon"><Icon name="info" :size="16" /></span>
         <p>Na janela de impressão que abrir, escolha “Salvar como PDF” como destino. Em “Mais definições”, deixe as margens em “Nenhuma”.</p>
       </div>
     </div>
@@ -132,6 +132,7 @@
 </template>
 
 <script setup>
+import Icon from './Icon.vue'
 import { reactive, watch, computed } from 'vue'
 
 const props = defineProps({

@@ -6,7 +6,7 @@
           <h2>Biblioteca de ingredientes</h2>
           <p class="sub">{{ libraryItems.length }} ingredientes cadastrados</p>
         </div>
-        <button class="close" aria-label="Fechar" @click="$emit('close')">✕</button>
+        <button class="close" aria-label="Fechar" @click="$emit('close')"><Icon name="x" :size="16" /></button>
       </header>
 
       <div class="toolbar">
@@ -15,7 +15,7 @@
           <option :value="null">Todas as categorias</option>
           <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
-        <button class="btn primary" @click="startNew">+ Cadastrar novo</button>
+        <button class="btn primary" @click="startNew"><Icon name="plus" :size="14" /> Cadastrar novo</button>
       </div>
 
       <p v-if="notice" class="notice">{{ notice }}</p>
@@ -26,7 +26,7 @@
         <div v-for="item in visible" :key="item.id" class="row">
           <span class="thumb">
             <img v-if="item.imagem" :src="item.imagem" :alt="item.nome" loading="lazy" />
-            <span v-else aria-hidden="true">🍔</span>
+            <Icon v-else name="burger" :size="20" />
           </span>
           <div class="info">
             <span class="name">{{ item.nome }}</span>
@@ -43,11 +43,11 @@
       <footer class="bottom">
         <div class="file-actions">
           <button class="btn small" title="Baixa o ingredientes.json com todas as suas mudanças" @click="doDownload">
-            ⬇ Baixar ingredientes.json
+            <Icon name="download" :size="14" /> Baixar ingredientes.json
           </button>
-          <button class="btn small" @click="fileInput.click()">⬆ Importar</button>
+          <button class="btn small" @click="fileInput.click()"><Icon name="upload" :size="14" /> Importar</button>
           <button class="btn small danger" :disabled="!hasLibraryChanges" @click="doReset">
-            ↺ Voltar à biblioteca original
+            <Icon name="reset" :size="14" /> Voltar à biblioteca original
           </button>
           <input ref="fileInput" type="file" accept="application/json,.json" hidden @change="doImport" />
         </div>
@@ -63,6 +63,7 @@
 </template>
 
 <script setup>
+import Icon from './Icon.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
   libraryItems, hasLibraryChanges, deleteIngredient, labelFor,

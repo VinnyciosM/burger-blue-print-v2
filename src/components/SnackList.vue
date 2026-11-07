@@ -34,16 +34,14 @@
 
     <div v-if="snacks.length > 5" class="search">
       <input v-model="search" type="text" placeholder="Buscar lanche..." />
-      <button v-if="search" class="search-clear" aria-label="Limpar busca" @click="search = ''">✕</button>
+      <button v-if="search" class="search-clear" aria-label="Limpar busca" @click="search = ''"><Icon name="x" :size="11" stroke="2.5" /></button>
     </div>
 
     <div class="items">
-      <VueDraggable v-model="localSnacks" handle=".drag-handle" ghost-class="ghost" :animation="200"
+      <VueDraggable v-model="localSnacks" filter="button" :prevent-on-filter="false" ghost-class="ghost" :animation="200"
         :disabled="!!search.trim()">
         <div v-for="snack in visibleSnacks" :key="snack.id" class="item"
-          :class="{ active: snack.id === activeSnackId }" @click="$emit('select-snack', snack.id)">
-          <span class="drag-handle" title="Segure para arrastar" @click.stop>⋮⋮</span>
-
+          :class="{ active: snack.id === activeSnackId, 'is-hidden': snack.hidden }" @click="$emit('select-snack', snack.id)">
           <span class="index">{{ String(indexOf(snack) + 1).padStart(2, '0') }}</span>
 
           <div class="info">
@@ -55,15 +53,17 @@
             </span>
           </div>
 
-          <div class="thumbs" aria-hidden="true">
-            <template v-for="ing in snack.ingredients.slice(0, 3)" :key="ing.id">
-              <img v-if="ing.image" :src="ing.image" alt="" />
-            </template>
-          </div>
-
           <div class="actions">
-            <button class="action-btn" title="Duplicar lanche" @click.stop="$emit('duplicate-snack', snack.id)">⧉</button>
-            <button class="action-btn danger" title="Excluir lanche" @click.stop="$emit('delete-snack', snack.id)">✕</button>
+            <template v-if="showLayerControls">
+              <button class="action-btn" :class="{ on: snack.hidden }"
+                :title="snack.hidden ? 'Mostrar no canvas' : 'Ocultar no canvas'"
+                @click.stop="$emit('toggle-flag', snack.id, 'hidden')"><Icon :name="snack.hidden ? 'eye-off' : 'eye'" :size="15" /></button>
+              <button class="action-btn" :class="{ on: snack.locked }"
+                :title="snack.locked ? 'Desbloquear posição e tamanho' : 'Bloquear posição e tamanho'"
+                @click.stop="$emit('toggle-flag', snack.id, 'locked')"><Icon :name="snack.locked ? 'lock' : 'unlock'" :size="15" /></button>
+            </template>
+            <button class="action-btn" title="Duplicar lanche" @click.stop="$emit('duplicate-snack', snack.id)"><Icon name="copy" :size="15" /></button>
+            <button class="action-btn danger" title="Excluir lanche" @click.stop="$emit('delete-snack', snack.id)"><Icon name="x" :size="15" /></button>
           </div>
         </div>
       </VueDraggable>
@@ -78,13 +78,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
+import Icon from './Icon.vue'
 
 const props = defineProps({
   snacks: { type: Array, required: true },
-  activeSnackId: { type: Number, default: null }
+  activeSnackId: { type: Number, default: null },
+  showLayerControls: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['update:snacks', 'select-snack', 'add-snack', 'duplicate-snack', 'delete-snack'])
+const emit = defineEmits(['update:snacks', 'select-snack', 'add-snack', 'duplicate-snack', 'delete-snack', 'toggle-flag'])
 
 const localSnacks = computed({
   get: () => props.snacks,
@@ -283,7 +285,7 @@ const restoreOrder = () => {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 10px 4px 0 10px;
 }
 
 .items::-webkit-scrollbar {
@@ -299,12 +301,13 @@ const restoreOrder = () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 8px 10px 4px;
+  position: relative;
+  padding: 10px 8px 10px 16px;
+  cursor: grab;
   margin-bottom: 8px;
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 12px;
-  cursor: pointer;
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
@@ -323,24 +326,21 @@ const restoreOrder = () => {
   opacity: 0.4;
 }
 
-.drag-handle {
-  padding: 4px 2px;
-  color: var(--text-faint);
-  font-size: 0.8rem;
-  letter-spacing: -2px;
-  cursor: grab;
-  user-select: none;
-}
-
 .index {
-  min-width: 26px;
-  padding: 2px 0;
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  z-index: 1;
+  min-width: 24px;
+  padding: 2px 6px;
   text-align: center;
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-radius: 6px;
+  line-height: 1.3;
+  color: var(--on-accent);
+  background: linear-gradient(160deg, var(--accent), var(--accent-hover));
+  border-radius: 8px;
+  pointer-events: none;
 }
 
 .info {
@@ -359,6 +359,8 @@ const restoreOrder = () => {
 }
 
 .meta {
+  display: flex;
+  align-items: center;
   font-size: 0.66rem;
   color: var(--text-faint);
 }
@@ -367,30 +369,25 @@ const restoreOrder = () => {
   color: #d9a441;
 }
 
-.thumbs {
-  display: flex;
-}
-
-.thumbs img {
-  width: 22px;
-  height: 22px;
-  margin-left: -6px;
-  object-fit: contain;
-  background: #fff;
-  border: 1px solid var(--bg);
-  border-radius: 50%;
-}
-
 .actions {
   display: flex;
   gap: 2px;
-  opacity: 0;
-  transition: opacity 0.15s;
 }
 
-.item:hover .actions,
-.item.active .actions {
+.action-btn {
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.item:hover .action-btn,
+.item.active .action-btn,
+.action-btn.on {
   opacity: 1;
+}
+
+.item.is-hidden .info {
+  opacity: 0.45;
 }
 
 .action-btn {

@@ -15,7 +15,7 @@
       <div class="modes">
         <button v-for="m in MODES" :key="m.id" class="mode-btn" :class="{ active: theme.mode === m.id }"
           @click="theme.mode = m.id">
-          <span aria-hidden="true">{{ icons[m.id] }}</span> {{ m.label }}
+          <Icon :name="icons[m.id]" :size="14" /> {{ m.label }}
         </button>
       </div>
 
@@ -37,10 +37,11 @@
 </template>
 
 <script setup>
+import Icon from './Icon.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { theme, ACCENTS, MODES, resetTheme } from '../theme.js'
 
-const icons = { light: '☀️', dark: '🌙', system: '💻' }
+const icons = { light: 'sun', dark: 'moon', system: 'monitor' }
 const open = ref(false)
 const root = ref(null)
 

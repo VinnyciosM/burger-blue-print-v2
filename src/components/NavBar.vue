@@ -1,7 +1,7 @@
 <template>
   <header class="navbar">
     <div class="nav-left">
-      <div class="logo" aria-hidden="true">🍔</div>
+      <div class="logo" aria-hidden="true"><Icon name="burger" :size="20" /></div>
       <div class="brand">
         <span class="brand-name">Burger Blue Print v2</span>
         <span class="brand-edition">Community Edition</span>
@@ -36,6 +36,7 @@
 
 <script setup>
 import AppearanceMenu from './AppearanceMenu.vue'
+import Icon from './Icon.vue'
 
 defineProps({
   printMode: { type: Boolean, default: false },

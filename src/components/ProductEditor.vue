@@ -7,7 +7,7 @@
                 <div class="input-group">
                     <!-- O Input altera SOMENTE o nome real do lanche -->
                     <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer" />
-                    <button class="icon-btn" aria-label="Editar">✏️</button>
+                    <button class="icon-btn" aria-label="Editar"><Icon name="pencil" :size="15" /></button>
                 </div>
             </section>
 
@@ -31,7 +31,7 @@
                                 </button>
                                 
                                 <button v-if="openObsId !== item.id" @click.stop="removeIngredient(index)"
-                                    class="btn-delete-full" aria-label="Remover">✕</button>
+                                    class="btn-delete-full" aria-label="Remover"><Icon name="x" :size="15" /></button>
                             </div>
 
                             <!-- Observação -->
@@ -41,7 +41,7 @@
                                 </div>
                                 <textarea v-model="item.obs" class="obs-textarea"
                                     placeholder="Digite a observação para este item..."></textarea>
-                                <button @click.stop="closeObs" class="btn-close-obs">✓ Concluído</button>
+                                <button @click.stop="closeObs" class="btn-close-obs"><Icon name="check" :size="13" /> Concluído</button>
                             </div>
                         </div>
                     </VueDraggable>
@@ -52,30 +52,37 @@
             </section>
         </div>
 
-        <!-- CANVAS -->
-        <div class="editor-main">
-            <div class="canvas-area active-column">
-                
-                <!-- Título -->
-                <h2 class="canvas-title">{{ snack.name }}</h2>
+        <div class="canvas-pane">
+            <!-- Alternador de modo: Foco (um lanche por vez) ou Mesa (vários manuais livres) -->
+            <div class="mode-switch" role="group" aria-label="Modo do canvas">
+                <button :class="{ active: canvasMode === 'focus' }" title="Foco: mostra só o lanche selecionado, centralizado"
+                    @click="canvasMode = 'focus'">Foco</button>
+                <button :class="{ active: canvasMode === 'board' }" title="Mesa: todos os manuais numa área livre, com zoom e arrastar"
+                    @click="canvasMode = 'board'">Mesa</button>
+            </div>
 
-                <!-- Container da Lista -->
-                <div class="canvas-content">
-                    
-                    <!-- Vazio -->
-                    <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
+            <!-- MESA: um manual independente para cada lanche -->
+            <WorkspaceCanvas v-if="canvasMode === 'board'" :snacks="snacks" :activeSnackId="snack.id"
+                @select-snack="$emit('select-snack', $event)"
+                @move-snack="(id, delta) => $emit('move-snack', id, delta)"
+                @toggle-flag="(id, key) => $emit('toggle-flag', id, key)" />
 
-                    <!-- Lista Espelhada (Imagem Direita / Texto Esquerda) -->
-                    <div v-else class="layers-list">
-                        <div v-for="item in snack.ingredients" :key="item.id" class="layer-item">
-                            <img v-if="item.image" :src="item.image" class="ingredient-img-canvas" />
-                            <div class="info">
-                                <span class="layer-name">{{ item.name }}</span>
-                                <span v-if="item.obs" class="layer-obs">{{ item.obs }}</span>
+            <!-- FOCO: o canvas clássico, só o lanche selecionado -->
+            <div v-else class="editor-main">
+                <div class="canvas-area">
+                    <h2 class="canvas-title">{{ snack.name }}</h2>
+                    <div class="canvas-content">
+                        <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
+                        <div v-else class="layers-list">
+                            <div v-for="item in snack.ingredients" :key="item.id" class="layer-item">
+                                <img v-if="item.image" :src="item.image" class="ingredient-img-canvas" />
+                                <div class="info">
+                                    <span class="layer-name">{{ item.name }}</span>
+                                    <span v-if="item.obs" class="layer-obs">{{ item.obs }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -83,13 +90,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ObservationIcon from './icons/ObservationIcon.vue'
+import Icon from './Icon.vue'
+import WorkspaceCanvas from './WorkspaceCanvas.vue'
 
 const props = defineProps({
     snack: { type: Object, required: true },
-    snackIndex: { type: Number, required: true }
+    snackIndex: { type: Number, required: true },
+    snacks: { type: Array, required: true }
+})
+
+defineEmits(['select-snack', 'move-snack', 'toggle-flag'])
+
+// Modo do canvas: 'focus' (Foco) ou 'board' (Mesa); lembrado neste navegador
+const MODE_KEY = 'manualburger_canvas_mode'
+const readMode = () => {
+    try { return localStorage.getItem(MODE_KEY) === 'focus' ? 'focus' : 'board' } catch { return 'board' }
+}
+const canvasMode = ref(readMode())
+watch(canvasMode, (mode) => {
+    try { localStorage.setItem(MODE_KEY, mode) } catch { /* sem armazenamento: ignora */ }
 })
 
 const openObsId = ref(null)
@@ -128,7 +150,7 @@ button {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 360px;
+    width: 330px;
     flex-shrink: 0;
     min-height: 0;
     padding: 18px;
@@ -403,10 +425,53 @@ button {
 }
 
 /* =========================================
-   CANVAS - ESTILO V1
+   MODO FOCO (canvas clássico) + alternador
 ========================================= */
+.canvas-pane {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+}
+
+.mode-switch {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+    display: flex;
+    padding: 3px;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.mode-switch button {
+    padding: 5px 14px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.mode-switch button:hover { color: var(--text); }
+
+.mode-switch button.active {
+    background: var(--accent);
+    color: var(--on-accent);
+}
+
 .editor-main {
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -415,7 +480,6 @@ button {
     border-radius: var(--radius);
     box-shadow: var(--shadow-panel);
     background-color: var(--surface);
-    /* mesa de trabalho pontilhada ao redor da guia */
     background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
     background-size: 22px 22px;
     padding: 12px;
@@ -423,60 +487,34 @@ button {
 }
 
 .canvas-area {
-    position: relative;
     width: 100%;
-    max-width: 420px; 
+    max-width: 420px;
     height: 100%;
     display: flex;
     flex-direction: column;
     padding: 12px 14px;
     box-sizing: border-box;
-    overflow: hidden; /* Mantém tudo dentro do container branco */
-}
-
-.active-column {
-    background: #fffaf7; 
+    overflow: hidden;
+    background: #fffaf7;
     border-radius: 6px;
     box-shadow: inset 0 0 0 2px var(--accent), 0 18px 40px rgba(0, 0, 0, 0.35);
 }
 
-.edit-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: 9px;
-    font-weight: 900;
-    color: var(--accent);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
 .canvas-title {
-    flex-shrink: 0; /* Impede o título de esmagar */
+    flex-shrink: 0;
     font-size: 15px;
     font-weight: 900;
     text-align: center;
-    border-bottom: 2px solid var(--accent); 
+    border-bottom: 2px solid var(--accent);
     padding-bottom: 12px;
-    margin-top: 6px;
-    margin-bottom: 8px;
+    margin: 6px 0 8px;
     text-transform: uppercase;
     color: #111827;
     width: 100%;
     box-sizing: border-box;
 }
 
-.canvas-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* REMOVIDO O SCROLL (auto -> hidden) */
-    min-height: 0; 
-}
-
-.canvas-content::-webkit-scrollbar {
-    display: none;
-}
+.canvas-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
 .canvas-empty-text {
     margin: auto;
@@ -487,58 +525,29 @@ button {
     letter-spacing: 1px;
 }
 
-.layers-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    gap: 2px; /* Gap reduzido para não gastar espaço útil quando houver muitos itens */
-    height: 100%;
-    min-height: 0;
-}
+.layers-list { display: flex; flex-direction: column; justify-content: flex-start; gap: 2px; height: 100%; min-height: 0; }
 
-.layer-item {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex: 1; /* MÁGICA: Faz o item crescer ou encolher para preencher o espaço */
-    min-height: 0; /* MÁGICA 2: Permite que o item encolha infinitamente sem quebrar o layout */
-    max-height: 84px; /* Trava o tamanho máximo para não ficarem gigantes se houver apenas 2 itens */
-    width: 100%;
-}
+.layer-item { display: flex; align-items: center; flex: 1; min-height: 0; max-height: 84px; width: 100%; }
 
 .ingredient-img-canvas {
     max-width: 150px;
-    height: 100%; /* A imagem vai acompanhar a altura "espremida" do item */
+    height: 100%;
     width: auto;
     object-fit: contain;
-    mix-blend-mode: multiply; 
-    flex-shrink: 1; /* Permite que a área da imagem encolha se necessário */
+    mix-blend-mode: multiply;
+    flex-shrink: 1;
 }
 
-.info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-left: 12px;
-    flex: 1;
-    min-width: 0;
-}
+.info { display: flex; flex-direction: column; justify-content: center; padding-left: 12px; flex: 1; min-width: 0; }
 
 .layer-name {
     font-size: 13px;
     font-weight: 900;
-    color: #374151; 
+    color: #374151;
     text-transform: uppercase;
     line-height: 1.2;
-    white-space: normal;
-    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
-.layer-obs {
-    font-size: 11px;
-    font-weight: 600;
-    color: #cc3333;
-    font-style: italic;
-    margin-top: 2px;
-}
+.layer-obs { font-size: 11px; font-weight: 600; color: #cc3333; font-style: italic; margin-top: 2px; }
 </style>

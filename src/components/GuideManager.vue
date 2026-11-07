@@ -2,18 +2,20 @@
   <aside class="guide-manager-panel">
     <SnackList :snacks="snacks" :activeSnackId="activeSnackId" @update:snacks="$emit('update:snacks', $event)"
       @select-snack="$emit('select-snack', $event)" @add-snack="$emit('add-snack')"
-      @duplicate-snack="$emit('duplicate-snack', $event)" @delete-snack="$emit('delete-snack', $event)" />
+      @duplicate-snack="$emit('duplicate-snack', $event)" @delete-snack="$emit('delete-snack', $event)"
+      @toggle-flag="(id, key) => $emit('toggle-flag', id, key)" show-layer-controls />
 
     <div class="print-cta">
       <p class="cta-text">Pronto? Ajuste o layout e gere o manual.</p>
       <button class="primary-btn" @click="$emit('open-print-mode')">
-        Gerar manual <span aria-hidden="true">→</span>
+        Gerar manual <Icon name="arrow-right" :size="16" />
       </button>
     </div>
   </aside>
 </template>
 
 <script setup>
+import Icon from './Icon.vue'
 import SnackList from './SnackList.vue'
 
 defineProps({
@@ -21,7 +23,7 @@ defineProps({
   activeSnackId: { type: Number, default: null }
 })
 
-defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'duplicate-snack', 'delete-snack'])
+defineEmits(['update:snacks', 'open-print-mode', 'add-snack', 'select-snack', 'duplicate-snack', 'delete-snack', 'toggle-flag'])
 </script>
 
 <style scoped>

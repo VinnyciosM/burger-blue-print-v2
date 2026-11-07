@@ -5,7 +5,7 @@
         <h2>Ingredientes</h2>
         <span class="total">{{ totalItems }} itens</span>
         <button class="lib-btn" title="Ver, editar e apagar todos os ingredientes" @click="showLibrary = true">
-          📚 Biblioteca
+          <Icon name="book" :size="14" /> Biblioteca
         </button>
       </div>
 
@@ -16,7 +16,7 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input v-model="search" type="text" placeholder="Buscar ingrediente..." />
-        <button v-if="search" class="search-clear" @click="search = ''" aria-label="Limpar busca">✕</button>
+        <button v-if="search" class="search-clear" @click="search = ''" aria-label="Limpar busca"><Icon name="x" :size="11" stroke="2.5" /></button>
       </div>
 
       <div class="chips">
@@ -48,7 +48,7 @@
             @click="$emit('add-ingredient', ingredient)">
             <span class="ingredient-image">
               <img v-if="ingredient.image" :src="ingredient.image" :alt="ingredient.name" loading="lazy" />
-              <span v-else class="no-image">🍔</span>
+              <span v-else class="no-image"><Icon name="burger" :size="28" /></span>
               <span class="add-badge">+</span>
               <span v-if="ingredient.custom" class="mine-badge" title="Ingrediente seu">meu</span>
             </span>
@@ -66,6 +66,7 @@
 import { computed, ref } from 'vue'
 import { libraryItems, labelFor } from '../customIngredients.js'
 import LibraryModal from './LibraryModal.vue'
+import Icon from './Icon.vue'
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
