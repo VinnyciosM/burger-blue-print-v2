@@ -12,6 +12,8 @@ O Burger Blue Print faz parte de um ecossistema open source em desenvolvimento, 
 
 Este repositório contém a **Community Edition**: gratuita e executada inteiramente no navegador. Como todos os projetos do ecossistema na versão da comunidade, ela tem limitações, mas a maioria das funcionalidades funciona. As diferenças em relação à versão completa estão [mais abaixo](#community-edition-e-versão-completa).
 
+> **Aviso:** o projeto **não foi adaptado para celular** nem para telas com resolução menor que **1920×1080** (Full HD). Em telas menores, o layout pode ficar apertado, cortado ou difícil de usar. Use em um computador.
+
 ## Funcionalidades
 
 - **Biblioteca de ingredientes** com imagens, organizada por categorias. Você pode cadastrar os seus próprios ingredientes (nome, categoria e imagem), editar ou apagar os existentes e personalizar a ordem e a exibição das categorias.
@@ -27,7 +29,7 @@ Este repositório contém a **Community Edition**: gratuita e executada inteiram
 1. **Montar lanches:** na coluna da esquerda, clique nos ingredientes para adicioná-los ao lanche. Dê um nome a ele e arraste os ingredientes para mudar a ordem.
 2. **Gerar manual:** escolha papel, margens e guias por folha. Depois, clique em **Salvar** e escolha PDF ou PNG.
 
-Recomendado usar no computador, no Chrome ou no Edge (os testes foram feitos neles).
+Recomendado usar em um computador com tela de pelo menos 1920×1080, no Chrome ou no Edge (os testes foram feitos neles). O projeto ainda não foi adaptado para celular.
 
 ## Seus dados
 

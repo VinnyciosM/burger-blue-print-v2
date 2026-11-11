@@ -33,6 +33,10 @@
             funcionalidades funciona.
           </p>
           <p>
+            O projeto ainda não foi adaptado para celular nem para telas com resolução menor que 1920×1080
+            (Full HD). Em telas menores, o layout pode ficar apertado ou cortado, então use em um computador.
+          </p>
+          <p>
             Outra limitação é a biblioteca de ingredientes. Aqui você encontra um conjunto básico de imagens, o
             suficiente para o programa ser útil desde o primeiro uso. A versão completa vai trazer mais de 100
             imagens prontas para criar os manuais. Isso não impede você de ir além: na Community Edition, você pode
