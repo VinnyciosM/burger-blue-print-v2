@@ -2,7 +2,7 @@
 
 Obrigado pelo interesse! Este guia explica como sugerir ingredientes e como mexer no código.
 
-> A licença do projeto ainda não foi definida. Antes de enviar uma contribuição grande, abra uma *issue* para conversarmos.
+> O projeto usa a licença [AGPL-3.0-or-later](LICENSE). Ao enviar uma contribuição, você concorda que ela seja distribuída sob essa mesma licença. Antes de enviar uma contribuição grande, abra uma *issue* para conversarmos.
 
 ## Sugerir um ingrediente novo
 

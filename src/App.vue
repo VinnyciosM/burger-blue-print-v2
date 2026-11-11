@@ -70,7 +70,7 @@
 
   <!-- Marca d'água do criador (não aparece na impressão) -->
   <a class="watermark" href="https://github.com/VinnyciosM" target="_blank" rel="noopener">
-    Feito por <strong>Vinnycios Medeiros</strong> · © {{ new Date().getFullYear() }} Todos os direitos reservados
+    Feito por <strong>Vinnycios Medeiros</strong> · © {{ new Date().getFullYear() }} · Licença AGPL-3.0
   </a>
 
   <!-- Aviso com "Desfazer" após excluir um lanche -->

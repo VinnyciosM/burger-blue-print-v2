@@ -18,9 +18,33 @@
         <section class="block">
           <h3>O que é</h3>
           <p>
-            O Burger Blue Print cria manuais operacionais de montagem para hamburguerias: você monta cada lanche
-            com seus ingredientes e gera folhas prontas para imprimir. É um projeto open source, na
-            <strong>Community Edition</strong>, criado por Vinnycios Medeiros.
+            O Burger Blue Print ajuda a padronizar a montagem dos lanches da sua hamburgueria. Você escolhe os
+            ingredientes de cada lanche, organiza tudo e gera folhas prontas para imprimir ou salvar, para que
+            quem monta na cozinha siga sempre o mesmo padrão.
+          </p>
+          <p>
+            O projeto faz parte de um ecossistema open source em desenvolvimento, pensado para todos que trabalham
+            em restaurantes: donos, cozinheiros e equipes. A ideia é ter ferramentas abertas, que qualquer pessoa
+            possa usar, estudar e melhorar.
+          </p>
+          <p>
+            O que você está usando agora é a Community Edition: gratuita, roda no seu navegador e não pede cadastro.
+            Como todos os projetos do ecossistema na versão da comunidade, ela tem limitações, mas a maioria das
+            funcionalidades funciona.
+          </p>
+          <p>
+            Outra limitação é a biblioteca de ingredientes. Aqui você encontra um conjunto básico de imagens, o
+            suficiente para o programa ser útil desde o primeiro uso. A versão completa vai trazer mais de 100
+            imagens prontas para criar os manuais. Isso não impede você de ir além: na Community Edition, você pode
+            cadastrar os seus próprios ingredientes, com nome, categoria e imagem.
+          </p>
+          <p>
+            A versão completa, hospedada em servidor, ainda não existe, mas o autor, Vinnycios Medeiros, pretende
+            lançá-la eventualmente.
+          </p>
+          <p>
+            Sugestões são muito bem-vindas. Se você tem uma ideia, encontrou um problema ou quer um ingrediente novo
+            na biblioteca, abra uma issue ou um Pull Request no GitHub.
           </p>
         </section>
 
@@ -40,7 +64,8 @@
           <ul>
             <li>os dados não passam sozinhos para outro computador, celular ou outro navegador;</li>
             <li>limpar os dados do site, ou usar uma janela anônima, apaga os lanches e os ingredientes;</li>
-            <li>o espaço é limitado (cerca de 5 MB), e as imagens dos ingredientes que você cadastra ocupam a maior parte.</li>
+            <li>o espaço é limitado (cerca de 5 MB), e as imagens dos ingredientes que você cadastra ocupam a maior parte.
+              Cadastre só as imagens que for usar e prefira arquivos pequenos (avif, webp, jpeg).</li>
           </ul>
         </section>
 
