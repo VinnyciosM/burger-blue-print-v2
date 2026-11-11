@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Mesmo ícone de hambúrguer exibido ao lado do nome na barra do app, sobre a cor principal -->
+  <rect width="24" height="24" rx="6" fill="#f38b41"/>
+  <g transform="translate(3.4 3.4) scale(0.72)" fill="none" stroke="#1a1109" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 11a8 6 0 0 1 16 0z"/>
+    <path d="M3 15h18"/>
+    <path d="M5 15l1 1.5a2 2 0 0 0 1.6.9h8.8a2 2 0 0 0 1.6-.9L19 15"/>
+    <path d="M4 19h16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/>
+  </g>
+</svg>
