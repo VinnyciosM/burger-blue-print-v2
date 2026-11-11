@@ -28,7 +28,9 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      # "npm install" (e não "npm ci"): o package-lock.json gerado no Windows não traz alguns pacotes opcionais
+      # que o Linux do GitHub pede (@emnapi/*), e o "npm ci" recusa um lock incompleto.
+      - run: npm install --no-audit --no-fund
 
       - name: Gerar o site
         run: npm run build

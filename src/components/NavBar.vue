@@ -23,10 +23,6 @@
         {{ snackCount }} {{ snackCount === 1 ? 'lanche' : 'lanches' }}
       </span>
       <AppearanceMenu />
-      <button class="nav-link info-btn" title="Sobre o projeto, onde ficam seus dados e backup" @click="showInfo = true">
-        <Icon name="info" :size="15" /> Sobre
-        <span v-if="storageStatus.failed" class="warn-dot" title="Não foi possível salvar no navegador"></span>
-      </button>
       <a class="nav-link" href="https://github.com/VinnyciosM/burger-blue-print-v2" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path
@@ -34,6 +30,10 @@
         </svg>
         GitHub
       </a>
+      <button class="nav-link info-btn" title="Sobre o projeto, onde ficam seus dados e backup" @click="showInfo = true">
+        <Icon name="info" :size="15" /> Sobre
+        <span v-if="storageStatus.failed" class="warn-dot" title="Não foi possível salvar no navegador"></span>
+      </button>
     </div>
 
     <InfoModal v-if="showInfo" @close="showInfo = false" />
