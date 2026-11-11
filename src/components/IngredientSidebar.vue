@@ -1,15 +1,22 @@
 <template>
   <aside class="ingredient-sidebar">
+    <p v-if="locked" class="locked-banner" role="status">
+      <Icon name="lock" :size="15" />
+      <span>Lanche bloqueado. Desbloqueie na lista de lanches para adicionar ingredientes.</span>
+    </p>
+
+    <!-- Lanche bloqueado: busca, filtros e lista de ingredientes ficam inutilizáveis (inert) e em preto e branco.
+         O cabeçalho (Personalizar) e o botão da Biblioteca não são afetados. -->
     <div class="sidebar-top">
       <div class="sidebar-header">
         <h2>Ingredientes</h2>
         <span class="total">{{ totalItems }} itens</span>
-        <button class="lib-btn" title="Ver, editar e apagar todos os ingredientes" @click="showLibrary = true">
-          <Icon name="book" :size="14" /> Biblioteca
+        <button class="lib-btn" title="Personalizar a biblioteca" @click="showCustomize = true">
+          <Icon name="settings" :size="14" /> Personalizar
         </button>
       </div>
 
-      <div class="search">
+      <div class="search locked-body" :class="{ 'is-locked': locked }" :inert="locked">
         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
@@ -19,7 +26,7 @@
         <button v-if="search" class="search-clear" @click="search = ''" aria-label="Limpar busca"><Icon name="x" :size="11" stroke="2.5" /></button>
       </div>
 
-      <div class="chips">
+      <div class="chips locked-body" :class="{ 'is-locked': locked }" :inert="locked">
         <button class="chip" :class="{ active: activeCategory === null }" @click="activeCategory = null">
           Todos
         </button>
@@ -30,19 +37,25 @@
       </div>
     </div>
 
-    <div class="sidebar-scroll">
+    <div class="sidebar-scroll locked-body" :class="{ 'is-locked': locked }" :inert="locked">
       <div v-if="isLoading" class="state-msg">Carregando ingredientes...</div>
       <div v-else-if="filteredCategories.length === 0" class="state-msg">
         Nenhum ingrediente encontrado.
       </div>
 
       <section v-for="category in filteredCategories" :key="category.id" class="category-block">
-        <h3 class="category-title">
-          {{ category.name }}
-          <span class="category-count">{{ category.items.length }}</span>
+        <h3 class="category-title" :class="{ collapsible: canCollapse }">
+          <button v-if="canCollapse" class="category-toggle" :aria-expanded="!isCollapsed(category.id)"
+            @click="toggleCategory(category.id)">
+            <Icon name="chevron-down" :size="13" class="chevron" :class="{ closed: isCollapsed(category.id) }" />
+            {{ category.name }}
+          </button>
+          <template v-else>{{ category.name }}</template>
+          <span v-if="librarySettings.showCount" class="category-count">{{ category.items.length }}</span>
         </h3>
 
-        <div class="ingredient-grid">
+        <div v-show="!canCollapse || !isCollapsed(category.id)" class="ingredient-grid"
+          :class="`view-${librarySettings.view}`">
           <button v-for="ingredient in category.items" :key="ingredient.id" class="ingredient-card" draggable="true"
             :title="`Adicionar ${ingredient.name}`" @dragstart="onDragStart(ingredient, $event)"
             @click="$emit('add-ingredient', ingredient)">
@@ -58,7 +71,14 @@
       </section>
     </div>
 
+    <div class="sidebar-bottom">
+      <button class="lib-btn full" title="Ver, editar e apagar todos os ingredientes" @click="showLibrary = true">
+        <Icon name="book" :size="14" /> Biblioteca de ingredientes
+      </button>
+    </div>
+
     <LibraryModal v-if="showLibrary" @close="showLibrary = false" />
+    <CustomizeModal v-if="showCustomize" @close="showCustomize = false" />
   </aside>
 </template>
 
@@ -66,12 +86,20 @@
 import { computed, ref } from 'vue'
 import { libraryItems, labelFor } from '../customIngredients.js'
 import LibraryModal from './LibraryModal.vue'
+import CustomizeModal from './CustomizeModal.vue'
+import { librarySettings, sortCategoryIds } from '../librarySettings.js'
 import Icon from './Icon.vue'
+
+defineProps({
+  // Lanche atual bloqueado: não dá para adicionar ingredientes
+  locked: { type: Boolean, default: false }
+})
 
 const emit = defineEmits(['add-ingredient'])
 const search = ref('')
 const activeCategory = ref(null)
 const showLibrary = ref(false)
+const showCustomize = ref(false)
 const isLoading = ref(false)
 
 // Biblioteca (arquivo + edições + cadastrados) agrupada por categoria
@@ -85,8 +113,19 @@ const categories = computed(() => {
     }
     group.items.push({ id: item.id, name: item.nome, slug: item.slug, image: item.imagem, custom: item.custom })
   }
-  return groups
+  const order = sortCategoryIds(groups.map(g => g.id))
+  return order.map(id => groups.find(g => g.id === id))
 })
+
+// Recolher/expandir categorias (só vale quando a opção está ligada; durante a busca tudo fica aberto)
+const collapsed = ref(new Set())
+const canCollapse = computed(() => librarySettings.collapsible && !search.value.trim())
+const isCollapsed = (id) => collapsed.value.has(id)
+function toggleCategory(id) {
+  const next = new Set(collapsed.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  collapsed.value = next
+}
 
 const totalItems = computed(() => categories.value.reduce((sum, c) => sum + c.items.length, 0))
 
@@ -111,6 +150,7 @@ function onDragStart(ingredient, event) {
 
 <style scoped>
 .ingredient-sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -170,6 +210,18 @@ function onDragStart(ingredient, event) {
 .lib-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.lib-btn.full {
+  width: 100%;
+  padding: 10px 13px;
+  border-radius: 12px;
+}
+
+.sidebar-bottom {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
 }
 
 .mine-badge {
@@ -309,6 +361,53 @@ function onDragStart(ingredient, event) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
+
+.category-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.category-toggle:hover { color: var(--text); }
+.chevron { transition: transform 0.15s; }
+.chevron.closed { transform: rotate(-90deg); }
+
+/* Estilos de exibição: lista e lista compacta */
+.ingredient-grid.view-list,
+.ingredient-grid.view-compact {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.view-list .ingredient-card,
+.view-compact .ingredient-card {
+  flex-direction: row;
+  align-items: center;
+}
+
+.view-list .ingredient-image { width: 64px; flex-shrink: 0; }
+.view-compact .ingredient-image { width: 40px; flex-shrink: 0; }
+
+.view-list .ingredient-name,
+.view-compact .ingredient-name {
+  flex: 1;
+  justify-content: flex-start;
+  padding: 4px 12px;
+  text-align: left;
+  font-size: 0.78rem;
+}
+
+.view-compact .ingredient-name { min-height: 0; font-size: 0.72rem; }
+.view-compact .add-badge { display: none; }
+.view-list .add-badge { width: 16px; height: 16px; top: 3px; right: 3px; font-size: 0.75rem; }
 
 .ingredient-card {
   display: flex;

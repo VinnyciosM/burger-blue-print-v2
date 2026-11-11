@@ -4,7 +4,7 @@
     <div ref="stage" class="stage" :style="stageStyle" @pointerdown="onPointerDown" @wheel.prevent="onWheel">
       <div class="world" :style="worldStyle">
         <div v-for="item in visibleItems" :key="item.snack.id" class="manual" :data-id="item.snack.id"
-          :class="{ selected: isSelected(item.snack.id), locked: item.snack.locked }" :style="manualStyle(item)">
+          :class="{ selected: isSelected(item.snack.id), locked: item.snack.locked, dimmed: item.snack.hidden }" :style="manualStyle(item)">
 
           <div class="manual-label">
             <span class="label-index">{{ String(item.index + 1).padStart(2, '0') }}</span>
@@ -28,13 +28,14 @@
               </div>
             </div>
           </div>
+          <span v-if="item.snack.locked" class="sheet-lock" title="Bloqueado"><Icon name="lock" :size="34" /></span>
         </div>
 
         <!-- Guias inteligentes: linhas vermelhas quando o manual arrastado alinha com outro -->
         <div v-for="(g, i) in guides" :key="i" class="guide" :style="guideStyle(g)"></div>
       </div>
 
-      <p v-if="visibleItems.length === 0" class="empty-hint">Nenhum manual visível. Use “Mostrar” na barra abaixo.</p>
+      <p v-if="visibleItems.length === 0" class="empty-hint">Nenhum manual na prancheta.</p>
     </div>
 
     <!-- Barra flutuante: zoom e ações do manual selecionado -->
@@ -45,22 +46,6 @@
       <button class="tb-text" title="Enquadrar todos os manuais" @click="fitAll">Enquadrar</button>
       <button class="tb-text" title="Selecionar todos os manuais (ou Shift+clique para somar à seleção)"
         @click="selectAll">Todos</button>
-
-      <template v-if="activeSnack">
-        <span class="tb-sep"></span>
-        <button class="tb-text" :class="{ on: activeSnack.hidden }" @click="$emit('toggle-flag', activeSnack.id, 'hidden')"
-          :title="activeSnack.hidden ? 'Mostrar o manual no canvas' : 'Ocultar o manual no canvas'">
-          {{ activeSnack.hidden ? 'Mostrar' : 'Ocultar' }}
-        </button>
-        <button class="tb-text" :class="{ on: activeSnack.locked }" @click="$emit('toggle-flag', activeSnack.id, 'locked')"
-          :title="activeSnack.locked ? 'Liberar para mover e redimensionar' : 'Travar posição e tamanho'">
-          {{ activeSnack.locked ? 'Desbloquear' : 'Bloquear' }}
-        </button>
-        <button class="tb-btn" title="Mover para antes na ordem do manual" :disabled="activeIndex <= 0"
-          @click="$emit('move-snack', activeSnack.id, -1)"><Icon name="arrow-left" :size="14" /></button>
-        <button class="tb-btn" title="Mover para depois na ordem do manual"
-          :disabled="activeIndex >= snacks.length - 1" @click="$emit('move-snack', activeSnack.id, 1)"><Icon name="arrow-right" :size="14" /></button>
-      </template>
     </div>
   </div>
 </template>
@@ -74,7 +59,7 @@ const props = defineProps({
   snacks: { type: Array, required: true },
   activeSnackId: { type: Number, default: null }
 })
-const emit = defineEmits(['select-snack', 'move-snack', 'toggle-flag'])
+const emit = defineEmits(['select-snack'])
 
 const MIN_ZOOM = 0.15
 const MAX_ZOOM = 2.5
@@ -82,11 +67,10 @@ const MAX_ZOOM = 2.5
 const stage = ref(null)
 
 const activeSnack = computed(() => props.snacks.find(s => s.id === props.activeSnackId) || null)
-const activeIndex = computed(() => props.snacks.findIndex(s => s.id === props.activeSnackId))
 
 // A ordem da lista é a ordem do manual impresso e também a ordem de empilhamento (o último fica por cima)
 const visibleItems = computed(() =>
-  props.snacks.map((snack, index) => ({ snack, index })).filter(item => !item.snack.hidden)
+  props.snacks.map((snack, index) => ({ snack, index }))
 )
 
 const stageStyle = computed(() => ({
@@ -154,7 +138,7 @@ function fitAll() {
 // Se o manual selecionado (pela lista, por exemplo) estiver fora da tela, centraliza nele
 function revealActive() {
   const s = activeSnack.value
-  if (!s || s.hidden || !stage.value) return
+  if (!s || !stage.value) return
   const w = stage.value.clientWidth
   const h = stage.value.clientHeight
   const left = s.x * view.z + view.x
@@ -170,9 +154,9 @@ const selectedIds = ref(props.activeSnackId != null ? [props.activeSnackId] : []
 const isSelected = (id) => selection.value.some(s => s.id === id)
 
 const selection = computed(() => {
-  const picked = props.snacks.filter(s => !s.hidden && selectedIds.value.includes(s.id))
+  const picked = props.snacks.filter(s => selectedIds.value.includes(s.id))
   if (picked.length) return picked
-  return activeSnack.value && !activeSnack.value.hidden ? [activeSnack.value] : []
+  return activeSnack.value ? [activeSnack.value] : []
 })
 
 // Manuais bloqueados não se movem nem alinham
@@ -208,7 +192,7 @@ const guideStyle = (g) => g.axis === 'v'
 function snapMove(dx, dy) {
   const items = drag.items
   const group = new Set(items.map(i => i.s))
-  const others = props.snacks.filter(s => !s.hidden && !group.has(s))
+  const others = props.snacks.filter(s => !group.has(s))
   const box = (ox, oy) => ({
     x1: Math.min(...items.map(i => i.ox + ox)),
     x2: Math.max(...items.map(i => i.ox + i.s.w + ox)),
@@ -422,6 +406,24 @@ onBeforeUnmount(detach)
   overflow: hidden;
 }
 
+.manual.dimmed .manual-sheet { opacity: 0.25; }
+
+/* Cadeado no meio do manual bloqueado (fica fora da folha para não ser esmaecido) */
+.sheet-lock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 4px solid #fffaf7;
+  pointer-events: none;
+}
 .manual.selected .manual-sheet {
   outline: calc(2px * var(--inv)) solid var(--accent);
   outline-offset: calc(4px * var(--inv));
@@ -564,5 +566,4 @@ onBeforeUnmount(detach)
 .tb-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .tb-text.on { background: var(--accent-soft); color: var(--accent); }
 
-.tb-sep { width: 1px; height: 18px; margin: 0 4px; background: var(--border-strong); }
 </style>

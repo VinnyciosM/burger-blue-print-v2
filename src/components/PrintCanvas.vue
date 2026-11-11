@@ -101,8 +101,9 @@ const pageSize = computed(() => `${paper.value.css} ${isLandscape.value ? 'lands
 // --- Zoom da visualização ---
 const MM_TO_PX = 96 / 25.4
 const scrollEl = ref(null)
-const userZoomed = ref(false)
-const zoom = ref(0.8)
+// Começa em 70% (como se o usuário já tivesse escolhido): clicar na porcentagem volta a "ajustar à largura"
+const userZoomed = ref(true)
+const zoom = ref(0.7)
 const clampZoom = (v) => Math.min(2, Math.max(0.3, Math.round(v * 100) / 100))
 const zoomIn = () => { userZoomed.value = true; zoom.value = clampZoom(zoom.value + 0.1) }
 const zoomOut = () => { userZoomed.value = true; zoom.value = clampZoom(zoom.value - 0.1) }
@@ -115,7 +116,7 @@ const fitToWidth = () => {
 
 let resizeObserver = null
 onMounted(() => {
-  fitToWidth()
+  if (!userZoomed.value) fitToWidth()
   if (typeof ResizeObserver !== 'undefined' && scrollEl.value) {
     resizeObserver = new ResizeObserver(() => {
       // Só reajusta sozinho se o usuário não mexeu no zoom manualmente

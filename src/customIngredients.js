@@ -3,6 +3,7 @@
 import { reactive, computed, watch } from 'vue'
 import baseData from './ingredientes.json'
 import { slugify, resolveImagePath } from './ingredientImages.js'
+import { reportStorageError, reportStorageOk } from './storageStatus.js'
 
 const STORAGE_KEY = 'manualburger_custom_ingredients'
 const EDITS_KEY = 'manualburger_library_edits'
@@ -19,9 +20,47 @@ export const CATEGORY_LABELS = {
   outros: 'Outros'
 }
 
-export const labelFor = (id) => CATEGORY_LABELS[id] || id.charAt(0).toUpperCase() + id.slice(1)
-
 export const CUSTOM_PREFIX = 'custom-'
+
+// Categorias criadas pelo usuário: [{ id, nome }]
+const CATEGORIES_KEY = 'manualburger_custom_categories'
+
+function loadCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATEGORIES_KEY) || '[]')
+    if (!Array.isArray(saved)) return []
+    return saved.filter(c => c && typeof c.id === 'string' && typeof c.nome === 'string')
+  } catch {
+    return []
+  }
+}
+
+export const customCategories = reactive(loadCategories())
+
+watch(customCategories, (list) => {
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(list))
+  } catch (error) {
+    reportStorageError(error)
+  }
+}, { deep: true })
+
+export const labelFor = (id) =>
+  CATEGORY_LABELS[id] || customCategories.find(c => c.id === id)?.nome || id.charAt(0).toUpperCase() + id.slice(1)
+
+// Cria uma categoria nova. Retorna { id } ou { error }.
+export function addCategory(nome) {
+  const name = (nome || '').trim().replace(/\s+/g, ' ')
+  if (!name) return { error: 'Digite o nome da categoria.' }
+  if (name.length > 30) return { error: 'Use no máximo 30 caracteres.' }
+  const id = slugify(name)
+  if (!id) return { error: 'Use letras ou números no nome.' }
+  const lower = name.toLowerCase()
+  const exists = allCategoryIds.value.some(c => c === id || labelFor(c).toLowerCase() === lower)
+  if (exists) return { error: 'Essa categoria já existe.' }
+  customCategories.push({ id, nome: name })
+  return { id }
+}
 
 function load() {
   try {
@@ -39,9 +78,10 @@ export const customIngredients = reactive(load())
 watch(customIngredients, (list) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    reportStorageOk()
   } catch (error) {
     // Normalmente é falta de espaço: as imagens são guardadas dentro do navegador
-    console.error('Não foi possível salvar os ingredientes:', error)
+    reportStorageError(error)
   }
 }, { deep: true })
 
@@ -65,7 +105,7 @@ watch(libraryEdits, (edits) => {
   try {
     localStorage.setItem(EDITS_KEY, JSON.stringify(edits))
   } catch (error) {
-    console.error('Não foi possível salvar as edições da biblioteca:', error)
+    reportStorageError(error)
   }
 }, { deep: true })
 
@@ -87,6 +127,14 @@ export const libraryItems = computed(() => {
     })
   const mine = customIngredients.map(c => ({ ...c, slug: c.id, custom: true, edited: false }))
   return [...base, ...mine]
+})
+
+// Todas as categorias: as dos ingredientes + as criadas pelo usuário (mesmo vazias)
+export const allCategoryIds = computed(() => {
+  const ids = []
+  for (const i of libraryItems.value) if (!ids.includes(i.categoria)) ids.push(i.categoria)
+  for (const c of customCategories) if (!ids.includes(c.id)) ids.push(c.id)
+  return ids
 })
 
 let counter = 0
@@ -127,7 +175,10 @@ export function updateIngredient(id, { nome, categoria, imagem }) {
     }
     return
   }
-  libraryEdits.overrides[id] = { nome: nome.trim(), categoria: categoria || 'outros', imagem: imagem || '' }
+  // Se a imagem é a mesma da biblioteca, não guarda o endereço dela: ele muda a cada atualização do site
+  const base = baseData.find(b => b.id === id)
+  const sameAsBase = base && imagem === resolveImagePath(base.imagem)
+  libraryEdits.overrides[id] = { nome: nome.trim(), categoria: categoria || 'outros', imagem: sameAsBase ? '' : (imagem || '') }
 }
 
 // Usado ao reabrir lanches salvos: devolve a imagem de um ingrediente próprio pelo "slug" (= id)
@@ -223,10 +274,11 @@ export async function importLibrary(file, baseList = baseData) {
 // Volta para a biblioteca básica (desfaz tudo: cadastrados, editados e apagados)
 export function resetLibrary() {
   customIngredients.splice(0, customIngredients.length)
+  customCategories.splice(0, customCategories.length)
   libraryEdits.hidden.splice(0, libraryEdits.hidden.length)
   for (const key of Object.keys(libraryEdits.overrides)) delete libraryEdits.overrides[key]
 }
 
 export const hasLibraryChanges = computed(
-  () => customIngredients.length > 0 || libraryEdits.hidden.length > 0 || Object.keys(libraryEdits.overrides).length > 0
+  () => customIngredients.length > 0 || customCategories.length > 0 || libraryEdits.hidden.length > 0 || Object.keys(libraryEdits.overrides).length > 0
 )

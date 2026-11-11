@@ -23,6 +23,10 @@
         {{ snackCount }} {{ snackCount === 1 ? 'lanche' : 'lanches' }}
       </span>
       <AppearanceMenu />
+      <button class="nav-link info-btn" title="Sobre o projeto, onde ficam seus dados e backup" @click="showInfo = true">
+        <Icon name="info" :size="15" /> Sobre
+        <span v-if="storageStatus.failed" class="warn-dot" title="Não foi possível salvar no navegador"></span>
+      </button>
       <a class="nav-link" href="https://github.com/VinnyciosM/burger-blue-print-v2" target="_blank" rel="noopener">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path
@@ -31,12 +35,19 @@
         GitHub
       </a>
     </div>
+
+    <InfoModal v-if="showInfo" @close="showInfo = false" />
   </header>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import AppearanceMenu from './AppearanceMenu.vue'
+import InfoModal from './InfoModal.vue'
 import Icon from './Icon.vue'
+import { storageStatus } from '../storageStatus.js'
+
+const showInfo = ref(false)
 
 defineProps({
   printMode: { type: Boolean, default: false },
@@ -185,6 +196,24 @@ defineEmits(['set-mode'])
 .nav-link:hover {
   color: var(--text);
   border-color: var(--border-strong);
+}
+
+.info-btn {
+  position: relative;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.warn-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
 }
 
 @media (max-width: 1100px) {

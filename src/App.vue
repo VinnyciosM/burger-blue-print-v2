@@ -3,7 +3,7 @@
   <NavBar :printMode="isPrintMode" :snackCount="snacks.length" @set-mode="isPrintMode = $event === 'print'" />
 
   <div v-if="!isPrintMode" class="app-container">
-    <IngredientSidebar class="ingredient-sidebar" @add-ingredient="handleAddIngredient" />
+    <IngredientSidebar class="ingredient-sidebar" :locked="!!currentSnack?.locked" @add-ingredient="handleAddIngredient" />
     
     <ProductEditor v-if="currentSnack" class="product-editor" :snack="currentSnack" :snackIndex="currentSnackIndex"
       :snacks="snacks" @select-snack="selectSnack" @move-snack="moveSnack" @toggle-flag="toggleFlag" />
@@ -16,7 +16,7 @@
   <div v-else class="print-container">
     
     <!-- O Canvas agora tem espaço de sobra na esquerda/centro -->
-    <PrintCanvas :snacks="snacks" :settings="printSettings" class="print-canvas-area" />
+    <PrintCanvas :snacks="printSnacks":settings="printSettings" class="print-canvas-area" />
 
     <!-- NOVA COLUNA UNIFICADA (Direita) -->
     <aside class="unified-sidebar">
@@ -50,10 +50,12 @@
       <div class="sidebar-content">
         <PrintSettingsSidebar 
           v-show="printTab === 'settings'" 
-          :snackCount="snacks.length"
-          @back-to-edit="isPrintMode = false" 
-          @update-settings="updatePrintSettings" 
-          @generate-pdf="printManual" 
+          :snackCount="printSnacks.length"
+          :pngState="pngState"
+          @back-to-edit="isPrintMode = false"
+          @update-settings="updatePrintSettings"
+          @generate-pdf="printManual"
+          @export-png="exportPng"
           class="inner-sidebar"
         />
 
@@ -95,6 +97,8 @@ import Icon from './components/Icon.vue';
 import { slugify, resolveImage } from './ingredientImages.js'
 import { customImageFor } from './customIngredients.js'
 import { placeSnack, placeAll } from './workspace.js'
+import { exportSheetsAsPng } from './exportPng.js'
+import { reportStorageError, reportStorageOk } from './storageStatus.js'
 
 const STORAGE_KEYS = {
   snacks: 'manualburger_snacks',
@@ -162,7 +166,12 @@ onMounted(() => {
 })
 
 watch(snacks, (newVal) => {
-  localStorage.setItem(STORAGE_KEYS.snacks, JSON.stringify(newVal))
+  try {
+    localStorage.setItem(STORAGE_KEYS.snacks, JSON.stringify(newVal))
+    reportStorageOk()
+  } catch (error) {
+    reportStorageError(error) // normalmente: armazenamento do navegador cheio
+  }
 }, { deep: true })
 
 watch(activeSnackId, (newVal) => {
@@ -170,6 +179,9 @@ watch(activeSnackId, (newVal) => {
     localStorage.setItem(STORAGE_KEYS.activeId, newVal.toString())
   }
 })
+
+// Lanches ocultos não entram na tela "Gerar manual" nem no PDF
+const printSnacks = computed(() => snacks.value.filter(s => !s.hidden))
 
 const currentSnack = computed(() => {
   return snacks.value.find(s => s.id === activeSnackId.value)
@@ -277,8 +289,25 @@ const printManual = () => {
   window.print()
 }
 
-const handleAddIngredient = (ingredient) => {
-  if (currentSnack.value) {
+// Salva as folhas escolhidas como PNG (300 DPI, tamanho real da folha)
+const pngState = ref({ busy: false, done: 0, total: 0, error: '' })
+
+const exportPng = async (indexes) => {
+  if (pngState.value.busy || !indexes.length) return
+  const sheets = [...document.querySelectorAll('.paper-sheet')]
+  pngState.value = { busy: true, done: 0, total: indexes.length, error: '' }
+  try {
+    await exportSheetsAsPng(sheets, indexes, (done) => { pngState.value.done = done })
+    pngState.value.busy = false
+  } catch (error) {
+    console.error('Falha ao gerar PNG:', error)
+    pngState.value = { busy: false, done: 0, total: 0, error: 'Não foi possível gerar o PNG. Tente de novo.' }
+  }
+}
+
+const handleAddIngredient =(ingredient) => {
+  // Lanche bloqueado não pode ser editado
+  if (currentSnack.value && !currentSnack.value.locked) {
     currentSnack.value.ingredients.push({
       id: uid(),
       name: ingredient.name,
@@ -552,6 +581,43 @@ body {
 /* =========================================
    IMPRESSÃO / PDF — apenas as folhas do manual
 ========================================= */
+/* Efeito de "lanche bloqueado" nas colunas laterais (um só lugar, para as duas ficarem iguais).
+   Uso: o conteúdo ganha a classe locked-body (+ is-locked e inert quando bloqueado) e o aviso locked-banner. */
+.locked-body {
+  transition: opacity 0.2s, filter 0.2s;
+}
+
+.locked-body.is-locked {
+  opacity: 0.4;
+  filter: grayscale(1);
+  user-select: none;
+}
+
+.locked-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  width: calc(100% - 36px);
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  /* fundo opaco (superfície + tom da cor principal), para cobrir o que está embaixo */
+  background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.locked-banner .icon { margin-top: 1px; color: var(--accent); }
+
 @media print {
   html, body {
     height: auto;
@@ -560,6 +626,11 @@ body {
   }
 
   .navbar, .unified-sidebar, .zoom-controls, .bottom-controls, .toast, .watermark {
+    display: none !important;
+  }
+
+  /* Ferramentas do Vue DevTools (só existem no `npm run dev`, nunca na versão final) */
+  #vue-inspector-container, #__vue-devtools-container__, .vue-devtools__anchor {
     display: none !important;
   }
 

@@ -1,12 +1,20 @@
 <template>
     <div class="product-editor">
         <div class="editor-sidebar">
+            <p v-if="locked" class="locked-banner" role="status">
+                <Icon name="lock" :size="15" />
+                <span>Lanche bloqueado. Desbloqueie na lista de lanches para editar.</span>
+            </p>
+
+            <!-- Quando bloqueado, todo o conteúdo fica inutilizável (inert) e esmaecido -->
+            <div class="sidebar-body locked-body" :class="{ 'is-locked': locked }" :inert="locked">
             <!-- Lanche Atual -->
             <section class="section-block">
                 <h3 class="section-title">LANCHE ATUAL (Nome sem número)</h3>
                 <div class="input-group">
                     <!-- O Input altera SOMENTE o nome real do lanche -->
-                    <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer" />
+                    <input type="text" v-model="snack.name" class="dark-input" placeholder="Ex: Alasca Burguer"
+                        :disabled="locked" />
                     <button class="icon-btn" aria-label="Editar"><Icon name="pencil" :size="15" /></button>
                 </div>
             </section>
@@ -16,8 +24,9 @@
                 <h3 class="section-title">INGREDIENTES DO LANCHE</h3>
                 <p class="section-subtitle">Reordene arrastando os itens</p>
                 <div class="ingredients-list">
-                    <VueDraggable v-model="snack.ingredients" ghost-class="ghost-item" :animation="200">
-                        <div v-for="(item, index) in snack.ingredients" :key="item.id" class="ingredient-item">
+                    <VueDraggable v-model="snack.ingredients" ghost-class="ghost-item" :animation="200" :disabled="locked">
+                        <div v-for="(item, index) in snack.ingredients" :key="item.id" class="ingredient-item"
+                            :class="{ 'is-locked': locked }">
                             <div class="ingredient-main-row">
                                 <div class="info-area">
                                     <span class="index">#{{ index + 1 }}</span>
@@ -25,13 +34,13 @@
                                 </div>
                                 <img v-if="item.image" :src="item.image" :alt="item.name" class="ingredient-img" />
                                 
-                                <button @click.stop="toggleObs(item)" class="btn-observation"
+                                <button @click.stop="toggleObs(item)" class="btn-observation" :disabled="locked"
                                     :class="{ 'is-open': openObsId === item.id }" title="Adicionar Observação">
                                     <ObservationIcon />
                                 </button>
                                 
                                 <button v-if="openObsId !== item.id" @click.stop="removeIngredient(index)"
-                                    class="btn-delete-full" aria-label="Remover"><Icon name="x" :size="15" /></button>
+                                    class="btn-delete-full" aria-label="Remover" :disabled="locked"><Icon name="x" :size="15" /></button>
                             </div>
 
                             <!-- Observação -->
@@ -39,7 +48,7 @@
                                 <div class="obs-header">
                                     <span class="obs-label">OBSERVAÇÃO</span>
                                 </div>
-                                <textarea v-model="item.obs" class="obs-textarea"
+                                <textarea v-model="item.obs" class="obs-textarea" :disabled="locked"
                                     placeholder="Digite a observação para este item..."></textarea>
                                 <button @click.stop="closeObs" class="btn-close-obs"><Icon name="check" :size="13" /> Concluído</button>
                             </div>
@@ -50,15 +59,16 @@
                     </div>
                 </div>
             </section>
+            </div>
         </div>
 
         <div class="canvas-pane">
-            <!-- Alternador de modo: Foco (um lanche por vez) ou Mesa (vários manuais livres) -->
+            <!-- Alternador de modo: Individual (um lanche por vez) ou Prancheta (vários manuais livres) -->
             <div class="mode-switch" role="group" aria-label="Modo do canvas">
-                <button :class="{ active: canvasMode === 'focus' }" title="Foco: mostra só o lanche selecionado, centralizado"
-                    @click="canvasMode = 'focus'">Foco</button>
-                <button :class="{ active: canvasMode === 'board' }" title="Mesa: todos os manuais numa área livre, com zoom e arrastar"
-                    @click="canvasMode = 'board'">Mesa</button>
+                <button :class="{ active: canvasMode === 'focus' }" title="Individual: mostra só o lanche selecionado, centralizado"
+                    @click="canvasMode = 'focus'">Individual</button>
+                <button :class="{ active: canvasMode === 'board' }" title="Prancheta: todos os manuais numa área livre, com zoom e arrastar"
+                    @click="canvasMode = 'board'">Prancheta</button>
             </div>
 
             <!-- MESA: um manual independente para cada lanche -->
@@ -69,20 +79,34 @@
 
             <!-- FOCO: o canvas clássico, só o lanche selecionado -->
             <div v-else class="editor-main">
-                <div class="canvas-area">
-                    <h2 class="canvas-title">{{ snack.name }}</h2>
-                    <div class="canvas-content">
-                        <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
-                        <div v-else class="layers-list">
-                            <div v-for="item in snack.ingredients" :key="item.id" class="layer-item">
-                                <img v-if="item.image" :src="item.image" class="ingredient-img-canvas" />
-                                <div class="info">
-                                    <span class="layer-name">{{ item.name }}</span>
-                                    <span v-if="item.obs" class="layer-obs">{{ item.obs }}</span>
+                <div class="sheet-wrap">
+                    <div class="canvas-area" :class="{ dimmed: snack.hidden }">
+                        <h2 class="canvas-title">{{ snack.name }}</h2>
+                        <div class="canvas-content">
+                            <span v-if="snack.ingredients.length === 0" class="canvas-empty-text">VAZIO</span>
+                            <div v-else class="layers-list">
+                                <div v-for="item in snack.ingredients" :key="item.id" class="layer-item">
+                                    <img v-if="item.image" :src="item.image" class="ingredient-img-canvas" />
+                                    <div class="info">
+                                        <span class="layer-name">{{ item.name }}</span>
+                                        <span v-if="item.obs" class="layer-obs">{{ item.obs }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <span v-if="locked" class="sheet-lock" title="Bloqueado"><Icon name="lock" :size="34" /></span>
+                </div>
+
+                <div v-if="snack.hidden || locked" class="sheet-notices">
+                    <p v-if="snack.hidden" class="sheet-notice">
+                        <Icon name="eye-off" :size="15" />
+                        <span>Este lanche está oculto: ele não aparece na geração do manual.</span>
+                    </p>
+                    <p v-if="locked" class="sheet-notice">
+                        <Icon name="lock" :size="15" />
+                        <span>Este lanche está bloqueado: não é possível editá-lo.</span>
+                    </p>
                 </div>
             </div>
         </div>
@@ -90,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import ObservationIcon from './icons/ObservationIcon.vue'
 import Icon from './Icon.vue'
@@ -104,7 +128,7 @@ const props = defineProps({
 
 defineEmits(['select-snack', 'move-snack', 'toggle-flag'])
 
-// Modo do canvas: 'focus' (Foco) ou 'board' (Mesa); lembrado neste navegador
+// Modo do canvas: 'focus' (Individual) ou 'board' (Prancheta); lembrado neste navegador
 const MODE_KEY = 'manualburger_canvas_mode'
 const readMode = () => {
     try { return localStorage.getItem(MODE_KEY) === 'focus' ? 'focus' : 'board' } catch { return 'board' }
@@ -113,6 +137,9 @@ const canvasMode = ref(readMode())
 watch(canvasMode, (mode) => {
     try { localStorage.setItem(MODE_KEY, mode) } catch { /* sem armazenamento: ignora */ }
 })
+
+// Lanche bloqueado: não pode ser editado
+const locked = computed(() => !!props.snack.locked)
 
 const openObsId = ref(null)
 
@@ -147,6 +174,7 @@ button {
 }
 
 .editor-sidebar {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -485,6 +513,70 @@ button {
     padding: 12px;
     overflow: hidden;
 }
+
+.sheet-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 420px;
+}
+
+.sheet-lock {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 84px;
+    height: 84px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--on-accent);
+    border: 4px solid #fffaf7;
+    pointer-events: none;
+}
+
+.sheet-notices {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 420px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sheet-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.sheet-notice .icon { margin-top: 1px; color: var(--accent); }
+
+.canvas-area.dimmed { opacity: 0.25; }
+
+.sidebar-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ingredient-item.is-locked { cursor: default; }
+.dark-input:disabled { cursor: not-allowed; opacity: 0.6; }
+button:disabled { cursor: not-allowed; opacity: 0.4; }
 
 .canvas-area {
     width: 100%;

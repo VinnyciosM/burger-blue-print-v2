@@ -118,28 +118,28 @@
 
     <!-- Rodapé -->
     <div class="sidebar-footer">
-      <button @click="$emit('generate-pdf')" class="btn-generate-pdf">
-        <Icon name="download" :size="16" /> GERAR PDF
+      <button @click="saving = true" class="btn-generate-pdf">
+        <Icon name="download" :size="16" /> SALVAR
       </button>
-      
-      <div class="info-box">
-        <span class="info-icon"><Icon name="info" :size="16" /></span>
-        <p>Na janela de impressão que abrir, escolha “Salvar como PDF” como destino. Em “Mais definições”, deixe as margens em “Nenhuma”.</p>
-      </div>
     </div>
+
+    <SaveModal v-if="saving" :sheetCount="sheetCount" :pngState="pngState" @close="saving = false"
+      @generate-pdf="startPdf" @export-png="$emit('export-png', $event)" />
 
   </aside>
 </template>
 
 <script setup>
 import Icon from './Icon.vue'
-import { reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, nextTick } from 'vue'
+import SaveModal from './SaveModal.vue'
 
 const props = defineProps({
-  snackCount: { type: Number, default: 0 }
+  snackCount: { type: Number, default: 0 },
+  pngState: { type: Object, default: () => ({ busy: false, done: 0, total: 0, error: '' }) }
 })
 
-const emit = defineEmits(['update-settings', 'back-to-edit', 'generate-pdf']) //[cite: 6]
+const emit = defineEmits(['update-settings', 'back-to-edit', 'generate-pdf', 'export-png']) //[cite: 6]
 
 const settings = reactive({
   paper: 'a4',
@@ -157,13 +157,23 @@ const settings = reactive({
 
 const sheetCount = computed(() => Math.max(1, Math.ceil(props.snackCount / Number(settings.itemsPerPage || 3))))
 
+// Pop-up "Salvar" (PDF ou PNG)
+const saving = ref(false)
+
+// Fecha o pop-up antes de imprimir, para ele não ficar por cima da janela de impressão
+const startPdf = async () => {
+  saving.value = false
+  await nextTick()
+  emit('generate-pdf')
+}
+
 // Em retrato só cabem 2 guias por folha: o botão "3" fica bloqueado
 const isBlocked = (num) => num === 3 && settings.orientation === 'portrait'
 
 // Cada orientação guarda as suas próprias margens: ao trocar, as margens da outra são restauradas
 const MARGINS = {
   landscape: { top: 10, bottom: 10, left: 10, right: 10 },
-  portrait: { top: 15, bottom: 15, left: 12, right: 12 }
+  portrait: { top: 5, bottom: 5, left: -45, right: -45 }
 }
 const savedMargins = { landscape: { ...MARGINS.landscape }, portrait: { ...MARGINS.portrait } }
 
@@ -478,18 +488,4 @@ input:checked + .slider.round:before {
 .btn-generate-pdf:hover { background-color: var(--accent-hover);}
 .btn-generate-pdf:active { transform: scale(0.98);}
 
-.info-box {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.info-icon { font-size: 1.1rem;}
-
-.info-box p {
-  margin: 0;
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
 </style>

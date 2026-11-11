@@ -43,7 +43,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
-  libraryItems, addCustomIngredient, updateIngredient, fileToDataUrl, labelFor
+  libraryItems, allCategoryIds, addCustomIngredient, updateIngredient, fileToDataUrl, labelFor
 } from '../customIngredients.js'
 
 const props = defineProps({
@@ -61,10 +61,7 @@ const nameInput = ref(null)
 
 // Categorias já existentes
 const categories = computed(() => {
-  const ids = []
-  for (const i of libraryItems.value) {
-    if (!ids.includes(i.categoria)) ids.push(i.categoria)
-  }
+  const ids = [...allCategoryIds.value]
   if (!ids.includes('outros')) ids.push('outros')
   return ids.map(id => ({ id, name: labelFor(id) }))
 })

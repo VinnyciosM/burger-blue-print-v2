@@ -15,50 +15,51 @@
           <option :value="null">Todas as categorias</option>
           <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
         </select>
-        <button class="btn primary" @click="startNew"><Icon name="plus" :size="14" /> Cadastrar novo</button>
       </div>
 
       <p v-if="notice" class="notice">{{ notice }}</p>
 
       <div class="list">
-        <p v-if="visible.length === 0" class="empty">Nenhum ingrediente encontrado.</p>
+        <p v-if="groups.length === 0" class="empty">Nenhum ingrediente encontrado.</p>
 
-        <div v-for="item in visible" :key="item.id" class="row">
-          <span class="thumb">
-            <img v-if="item.imagem" :src="item.imagem" :alt="item.nome" loading="lazy" />
-            <Icon v-else name="burger" :size="20" />
-          </span>
-          <div class="info">
-            <span class="name">{{ item.nome }}</span>
-            <span class="meta">
-              {{ labelFor(item.categoria) }}
-              <em v-if="item.custom" class="tag">meu</em>
-            </span>
-          </div>
-          <button class="btn small" @click="editing = item">Editar</button>
-          <button class="btn small danger" @click="remove(item)">Apagar</button>
-        </div>
+        <section v-for="group in groups" :key="group.id" class="group">
+          <button class="group-head" :aria-expanded="isOpen(group.id)" @click="toggleGroup(group.id)">
+            <Icon name="chevron-down" :size="14" class="chevron" :class="{ closed: !isOpen(group.id) }" />
+            <span class="group-name">{{ group.name }}</span>
+            <span class="group-count">{{ group.items.length }}</span>
+          </button>
+
+          <template v-if="isOpen(group.id)">
+            <p v-if="group.items.length === 0" class="group-empty">Nenhum ingrediente nesta categoria ainda.</p>
+            <div v-for="item in group.items" :key="item.id" class="row">
+              <span class="thumb">
+                <img v-if="item.imagem" :src="item.imagem" :alt="item.nome" loading="lazy" />
+                <Icon v-else name="burger" :size="20" />
+              </span>
+              <div class="info">
+                <span class="name">{{ item.nome }}</span>
+                <span v-if="item.custom" class="meta"><em class="tag">meu</em></span>
+              </div>
+              <button class="btn small" @click="editing = item">Editar</button>
+              <button class="btn small danger" @click="remove(item)">Apagar</button>
+            </div>
+          </template>
+        </section>
       </div>
 
       <footer class="bottom">
-        <div class="file-actions">
-          <button class="btn small" title="Baixa o ingredientes.json com todas as suas mudanças" @click="doDownload">
-            <Icon name="download" :size="14" /> Baixar ingredientes.json
+        <div class="footer-actions">
+          <button class="btn" title="Criar uma categoria nova" @click="addingCategory = true">
+            <Icon name="plus" :size="14" /> Nova categoria
           </button>
-          <button class="btn small" @click="fileInput.click()"><Icon name="upload" :size="14" /> Importar</button>
-          <button class="btn small danger" :disabled="!hasLibraryChanges" @click="doReset">
-            <Icon name="reset" :size="14" /> Voltar à biblioteca original
-          </button>
-          <input ref="fileInput" type="file" accept="application/json,.json" hidden @change="doImport" />
+          <button class="btn primary" @click="startNew"><Icon name="plus" :size="14" /> Cadastrar novo ingrediente</button>
         </div>
-        <p class="hint">
-          Errou algo? Importe o ingredientes.json original de novo ou volte à biblioteca original.
-        </p>
       </footer>
     </section>
 
     <AddIngredientModal v-if="creating || editing" :editing="editing" @close="closeForm" @added="onAdded"
       @saved="say('Ingrediente atualizado.')" />
+    <AddCategoryModal v-if="addingCategory" @close="addingCategory = false" @added="onCategoryAdded" />
   </div>
 </template>
 
@@ -66,10 +67,11 @@
 import Icon from './Icon.vue'
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
-  libraryItems, hasLibraryChanges, deleteIngredient, labelFor,
-  downloadLibrary, importLibrary, resetLibrary
+  libraryItems, deleteIngredient, labelFor, allCategoryIds
 } from '../customIngredients.js'
 import AddIngredientModal from './AddIngredientModal.vue'
+import AddCategoryModal from './AddCategoryModal.vue'
+import { sortCategoryIds } from '../librarySettings.js'
 
 const emit = defineEmits(['close'])
 
@@ -78,7 +80,6 @@ const categoryFilter = ref(null)
 const creating = ref(false)
 const editing = ref(null)
 const notice = ref('')
-const fileInput = ref(null)
 let noticeTimer = null
 
 const say = (text) => {
@@ -87,20 +88,40 @@ const say = (text) => {
   noticeTimer = setTimeout(() => { notice.value = '' }, 5000)
 }
 
-const categories = computed(() => {
-  const ids = []
-  for (const i of libraryItems.value) if (!ids.includes(i.categoria)) ids.push(i.categoria)
-  return ids.map(id => ({ id, name: labelFor(id) }))
-})
+const categories = computed(() => allCategoryIds.value.map(id => ({ id, name: labelFor(id) })))
 
-const visible = computed(() => {
+// Nova categoria
+const addingCategory = ref(false)
+
+function onCategoryAdded(id) {
+  categoryFilter.value = id
+  say(`Categoria "${labelFor(id)}" criada.`)
+}
+
+// Ingredientes agrupados por categoria (na mesma ordem da coluna de ingredientes)
+const groups = computed(() => {
   const term = search.value.toLowerCase().trim()
-  return libraryItems.value
-    .filter(i => categoryFilter.value === null || i.categoria === categoryFilter.value)
+  const sorted = libraryItems.value
     .filter(i => !term || i.nome.toLowerCase().includes(term))
     .slice()
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+
+  return sortCategoryIds(allCategoryIds.value)
+    .filter(id => categoryFilter.value === null || id === categoryFilter.value)
+    .map(id => ({ id, name: labelFor(id), items: sorted.filter(i => i.categoria === id) }))
+    // categoria vazia só aparece fora da busca (para dar para ver as recém-criadas)
+    .filter(g => g.items.length > 0 || !term)
 })
+
+// Recolher/expandir (durante a busca tudo fica aberto)
+const closed = ref(new Set())
+const isOpen = (id) => !!search.value.trim() || !closed.value.has(id)
+function toggleGroup(id) {
+  if (search.value.trim()) return
+  const next = new Set(closed.value)
+  next.has(id) ? next.delete(id) : next.add(id)
+  closed.value = next
+}
 
 function startNew() {
   editing.value = null
@@ -123,33 +144,9 @@ function remove(item) {
   }
 }
 
-function doDownload() {
-  downloadLibrary()
-  say('ingredientes.json baixado com as suas mudanças.')
-}
-
-async function doImport(event) {
-  const file = event.target.files?.[0]
-  event.target.value = ''
-  if (!file) return
-  try {
-    const count = await importLibrary(file)
-    say(count ? `${count} ingrediente(s) importado(s).` : 'Nenhum ingrediente novo no arquivo.')
-  } catch (e) {
-    say(e.message)
-  }
-}
-
-function doReset() {
-  if (window.confirm('Desfazer tudo (cadastrados, editados e apagados) e voltar à biblioteca original? Baixe o ingredientes.json antes se quiser guardar.')) {
-    resetLibrary()
-    say('Biblioteca original restaurada.')
-  }
-}
-
 const onKey = (e) => {
   // O Esc fecha primeiro o formulário (se aberto); só depois a biblioteca
-  if (e.key === 'Escape' && !creating.value && !editing.value) emit('close')
+  if (e.key === 'Escape' && !creating.value && !editing.value && !addingCategory.value) emit('close')
 }
 onMounted(() => document.addEventListener('keydown', onKey))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
@@ -266,6 +263,52 @@ h2 {
   background: var(--border-strong);
   border-radius: 10px;
 }
+
+.group + .group {
+  margin-top: 14px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 6px;
+  padding: 6px 2px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.group-head:hover { color: var(--text); }
+
+.group-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.group-count {
+  padding: 1px 7px;
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  background: var(--bg);
+  border-radius: 999px;
+}
+
+.group-empty {
+  margin: 8px 2px;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.chevron { transition: transform 0.15s; }
+.chevron.closed { transform: rotate(-90deg); }
 
 .empty {
   padding: 40px 0;
@@ -391,15 +434,11 @@ h2 {
   border-top: 1px solid var(--border);
 }
 
-.file-actions {
+.footer-actions {
   display: flex;
+  justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.hint {
-  margin: 8px 0 0;
-  font-size: 0.7rem;
-  color: var(--text-faint);
-}
 </style>
